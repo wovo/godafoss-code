@@ -30,6 +30,11 @@ his support for Christianity, thus avoiding a civil war.
 
 Installation
 ------------
+If you want to use the library (as opposed to tinker with the library code)
+the preferred option is to use an image with the lbrary built in as
+frozen code. This yields the shortest startup time and the lowest RAM use.
+For 
+
 From the host, using mpremote from the host (PC/laptop) command line
 (my MicroPython devices are always on com42)::
 
