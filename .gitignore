@@ -1,0 +1,15 @@
+attic
+_attic
+datasheets
+images
+lib
+pdf
+temp
+tempdir
+work
+__pycache__
+*.pyc
+*.mpy
+.coverage
+.doctrees
+.vs

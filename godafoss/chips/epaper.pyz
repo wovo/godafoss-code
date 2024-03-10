@@ -1,0 +1,89 @@
+# ===========================================================================
+#
+# file     : gf_lcd.py
+# part of  : godafoss micropython library
+# url      : https://www.github.com/wovo/godafoss
+# author   : Wouter van Ooijen (wouter@voti.nl) 2023
+# license  : MIT license, see license variable in the __init__.py
+#
+# This file is part of the Godafoss perhiperal interface library.
+#
+# This file contains the generic color LCD driver.
+#
+# ===========================================================================
+
+import framebuf
+
+import godafoss as gf
+
+
+# ===========================================================================
+
+class epaper( gf.canvas, gf.lcd_spi ):
+
+    # =======================================================================
+
+    def __init__( 
+        self, 
+        size: xy = gf.xy( 212, 104 ),
+        spi: machine.SPI, 
+        data_command: [ int, pin_out, pin_in_out, pin_oc ],
+        chip_select: [ int, pin_out, pin_in_out, pin_oc ] = None, 
+        power: [ int, pin_out, pin_in_out, pin_oc ] = None,   
+    ):
+        canvas.__init__(
+            self,
+            size = size,
+            is_color = True,
+            background = gf.colors.white
+        )
+    
+        lcd_spi.__init__(
+            self,
+            spi = spi,
+            data_command = data_command,
+            chip_select = chip_select,
+        )
+               
+        self._buffer = bytearray( 
+            2 * self.size.y * self.size.x )
+        self._framebuffer = framebuf.FrameBuffer(
+            self._buffer, 
+            self.size.x,
+            self.size.y, 
+            framebuf.RGB565 
+        )
+            
+    # =======================================================================
+    
+    def _flush_implementation(
+        self,
+        forced: bool
+    ) -> None:     
+        
+        pass    
+        
+    # =======================================================================
+
+    def _clear_implementation( 
+        self,
+        ink: color
+    ):
+        self._framebuffer.fill( self._encode( ink ) )
+        
+    # =======================================================================
+        
+    def _write_pixel_implementation( 
+        self, 
+        location: gf.xy, 
+        ink: gf.color
+    ):
+        self._framebuffer.pixel(
+            location.x,
+            location.y,
+            self._encode( ink )
+        )
+        
+    # =======================================================================
+    
+# ===========================================================================

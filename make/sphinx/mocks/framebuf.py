@@ -1,0 +1,1 @@
+def Framebuffer( *args, **kwargs ): pass

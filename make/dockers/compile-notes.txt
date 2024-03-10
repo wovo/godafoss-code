@@ -1,0 +1,34 @@
+git clone https://www.github.com/micropython/micropython
+cd micropython/ports/rp2
+
+WSL 
+install ubuntu
+apt-get update
+apt install 
+    python3
+    python-is-python3
+    make
+    cmake
+    build-essential
+sudo apt-get install gcc-arm-none-eabi binutils-arm-none-eabi 
+    gdb-arm-none-eabi openocd    
+git clone https://www.github.com/micropython/micropython    
+
+cd micropython 
+make -C mpy-cross
+cd ports/rp2
+export CXX=/usr/bin/arm-none-eabi-gcc
+make BOARD=PICO submodules
+
+
+
+==================== werkt niet meer??
+
+sudo apt update
+sudo apt install build-essential
+sudo apt install git
+sudo apt install gettext
+sudo apt install add-apt-repository
+sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+sudo apt update
+sudo apt install gcc-arm-embedded - not found

@@ -1,0 +1,1 @@
+python make/ggf.py %*
