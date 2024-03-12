@@ -37,15 +37,29 @@ def find_source_files( path ):
 def make_lib( mem_log ):
 
     try:
-        shutil.rmtree( "lib/godafoss" )
+        shutil.rmtree( "../godafoss/lib" )
     except:
         pass
         
+    os.makedirs( "../godafoss/lib/godafoss/g", exist_ok = True )
+    
     for path, file in find_source_files( "godafoss" ):
     
+        # skip files that support running native (on the PC)
+        if path.find( "native" ) > -1:
+            continue
+            
+        # ignore the .py version of the __init__    
+        if file == "__init__.py":
+            continue
+    
         source = path + "/" + file
-        destination = "lib/" + path + "/" + file.replace( ".py", ".mpy" )
-        os.makedirs( "lib/" + path, exist_ok = True )
+        destination = "../godafoss/lib/godafoss/g/" + file.replace( ".py", ".mpy" )
+        
+        # replace the __init__ with this __init_mpy
+        if file == "__init__mpy.py":
+            destination = "../godafoss/lib/godafoss/__init__.mpy"
+        
         s = f"python -m mpy_cross -o {destination} {source}"
         print( s )
         os.system( s )             
