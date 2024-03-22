@@ -1,14 +1,10 @@
 # ===========================================================================
 #
-# file     : gf_xpt2046.py
+# file     : gf_hd44780.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
-# author   : Wouter van Ooijen (wouter@voti.nl) 2023
+# author   : Wouter van Ooijen (wouter@voti.nl) 2024
 # license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the xpt2046 touch screen interface driver class.
 #
 # ===========================================================================
 

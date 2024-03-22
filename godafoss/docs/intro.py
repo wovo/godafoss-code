@@ -14,7 +14,7 @@ $insert_image( "godafoss-waterfalls", 0, 600 )
 Purpose
 -------
 
-The Godafoss library is a library for use with MicroPython.
+Godafossis a library for use with MicroPython.
 It provides a consistent interface to the hardware of the target chip or
 module itself, and to various peripheral chips and modules.
 The emphasis is on portability and abstraction,
@@ -28,56 +28,44 @@ Ljosvetningagodi threw his statues of Norse gods in the water to express
 his support for Christianity, thus avoiding a civil war.
 
 
-Installation
-------------
+Use
+---
 If you want to use the library (as opposed to tinker with the library code)
 the preferred option is to use an image with the lbrary built in as
 frozen code. This yields the shortest startup time and the lowest RAM use.
-For 
+Images for a few targets are available, built from the latest MicroPython:
+version (1.22): 
+rp2040 (Raspberry Pi Pico),
+rp2040w (Raspberry Pi Pico with WiFi),
+esp32,
+esp32s2 (single CPU),
+esp32c3 (RISC V),
+Teensy $.1
+.
 
-From the host, using mpremote from the host (PC/laptop) command line
+The library can be installed by using mpremote from the host 
+(PC/laptop) command line
 (my MicroPython devices are always on com42)::
 
     python -m mpremote connect com42 mip install github:wovo/godafoss
 
-If you prefer to install the manually:
+Or if you prefer to install the manually:
 
     - clone http://www.github.com/wovo/godafoss
     - copy the lib directory to the target MicroPython device,
       for instance using the file download funtion in Thonny
 
-These two methods install the pre-compiled form of the
-library (.mpy files).
-
-An alternative is to build your own MicroPython image 
-with the library built-in. For a few targets
-(rp2040, esp32) this has been automated using docker:
-
-    - install (and on windows: start) docker
-    - clone http://www.github.com/wovo/godafoss
-    - in a command line windows in the root of the clone
-      give the command::
-
-    make/build <target>
-
-    - the MicroPython image with godafoss built-in can now be
-      found in the tempdir/...
-    - for rp2040, the image can be downloaded using Thonny
-    - assuming
-
-    make/download <target> com42
-
 To use the library in its source form
 (for debugging or extending the library):
 
     - clone the
-      Godafoss repository http://www.github.com/wovo/godafoss
-    - copy the godafoss directory to the root or lib directory
-      on the target MicroPython device
+      Godafoss code repository http://www.github.com/wovo/godafoss-code
+    - copy the godafoss directory to the root 
+      of the target MicroPython device
       for instance using the file download funtion in Thonny
 
 For working on the library a fast target with ample RAM is recommended.
-My preferred target this is currently (2025) the Teensy 4.1
+My preferred target this is currently (2024) the Teensy 4.1
 (a pity its MicroPython port doesn't have the nexopixel driver built in).
 
 

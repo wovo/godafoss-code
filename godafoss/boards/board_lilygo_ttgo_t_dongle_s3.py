@@ -108,8 +108,7 @@ class board_lilygo_ttgo_t_dongle_s3:
         """
         the LCD (monochrome driver)
         """        
-        return gf.lcd(
-            chip = "st7789",
+        return gf.st7789(
             size = gf.xy( 135, 240 ), 
             spi = self.spi(),
             data_command = self.tft_dc,
@@ -128,8 +127,7 @@ class board_lilygo_ttgo_t_dongle_s3:
         """
         the LCD (color driver)
         """        
-        return gf.lcd(
-            chip = "st7789",
+        return gf.st7789(
             size = gf.xy( 135, 240 ), 
             spi = self.spi(),
             data_command = self.tft_dc,

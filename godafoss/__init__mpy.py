@@ -30,8 +30,6 @@ from micropython import const
 
 show_loading = False
 
-version = "0.1"
-
 from godafoss.g.always import *
 
 # ===========================================================================

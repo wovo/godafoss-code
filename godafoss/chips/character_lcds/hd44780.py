@@ -97,11 +97,11 @@ class hd44780( gf.terminal ):
         self._e = gf.make_pin_out( e )
         self._rw = gf.make_pin_out( rw )
         self.backlight = gf.make_pin_out( backlight )
-        self.init()
+        self._init()
 
     # =======================================================================    
 
-    def init( self ):
+    def _init( self ):
         """initialize the hd44780 chip to 4-bit mode"""
         self._rw.write( 0 )
         self.backlight.write( 1 )

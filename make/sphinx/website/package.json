@@ -1,0 +1,13 @@
+{
+    "homepage": "https://github.com/wovo/godafoss",
+    "license": "MIT-0",
+    "description": "A MicroPython library",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wovo/godafoss-code"
+    },
+    "version": "0.1",
+    "urls": [
+        [ "lib/godafoss", "github:wovo/godafoss/lib/godafoss" ],
+    ],
+}

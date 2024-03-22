@@ -54,6 +54,38 @@ class xy( gf.immutable ):
 
     # =======================================================================
 
+    def __iter__(
+        self
+    ) -> "xy":
+        for y in range( self.y ):
+            for x in range( self.x ):
+                yield xy( x, y )
+
+    # =======================================================================
+
+    def around(
+        self
+    ) -> "xy":
+        for dy in range( -1, 0, +1 ):
+            for dx in range( -1, 0, +1 ):
+                if ( dx != 0 ) or ( dy != 0 ):
+                yield xy( self.x + dx, self.y + dy )
+
+    # =======================================================================
+
+    def within(
+        self,
+        boundary: "xy"
+    ) -> "xy":
+        return (
+            ( self.x >= 0 ) 
+            and ( self.y >= 0 )
+            and ( self.x < boundary.x ) 
+            and self.y < boundary.y )
+        )
+
+    # =======================================================================
+
     def __eq__(
         self,
         other: "xy"

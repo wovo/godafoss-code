@@ -2,14 +2,39 @@ This is the source repository for
 [godafoss](https://
 , a micro-python library.
 
+package.json - can it find subdirectories at all?
+
+board: pycom lopy
+
+inherit:
+- store-args
+- no-additions
+
+-> Louwman update connector is difficult when in box
+
 TODO
 ====
 
 - now uses latest latest, should use latest stable, or maybe 1.22
-- build both with and without godafoss
+- build nogodafoss
 - support both for download
-- esp32 'no module named godafoss'
-- canvas_native is not micropython, maybe a few others too
+
+https://dev.to/shilleh/how-to-use-esp32-cam-with-micropython-4odo
+
+https://khalsalabs.com/how-to-use-micropython-on-esp32-your-ultimate-free-guide/
+
+https://github.com/micropython/micropython-lib/tree/master/micropython
+
+https://github.com/peterhinch/micropython-nano-gui
+
+https://docs.python.org/3/c-api/memoryview.html
+
+https://github.com/v923z/micropython-ulab?tab=readme-ov-file#stm-based-boards
+
+directly from git, no branch
+https://github.com/florisla/stm32loader
+
+https://www.arducam.com/ov2640/
 
 TODO
 - Traceback (most recent call last):

@@ -24,11 +24,34 @@ import os, glob, sys, shutil, mpy_cross
 def find_source_files( path ):
     results = []
     for entry in os.listdir( path ):
+    
         if entry.endswith( ".py" ):
-            results.append( [ path, entry ] )
-        elif ( entry.find( "." ) < 0 ) \
-            and ( entry != "tests" ):
+    
+            destination = entry.replace( ".py", ".mpy" )
+            
+            # skip files that support running native (on the PC)
+            if entry.find( "native" ) > -1:
+                continue    
+            
+            # ignore the .py version of the __init__    
+            if entry == "__init__.py":
+                continue    
+             
+            # replace the __init__ with this __init_mpy, 
+            # and put it one directory higher
+            if entry == "__init__mpy.py":
+                destination = "../__init__.mpy"
+
+            results.append( [ path, entry, destination ] )
+            
+        elif ( entry.find( "." ) < 0 ):
+        
+            # ignore the tests
+            if entry == "tests":
+                continue
+                
             results += find_source_files( path + "/" + entry )
+            
     return results 
 
 
@@ -43,22 +66,11 @@ def make_lib( mem_log ):
         
     os.makedirs( "../godafoss/lib/godafoss/g", exist_ok = True )
     
-    for path, file in find_source_files( "godafoss" ):
-    
-        # skip files that support running native (on the PC)
-        if path.find( "native" ) > -1:
-            continue
-            
-        # ignore the .py version of the __init__    
-        if file == "__init__.py":
-            continue
+    for path, file, destination in find_source_files( "godafoss" ):
     
         source = path + "/" + file
-        destination = "../godafoss/lib/godafoss/g/" + file.replace( ".py", ".mpy" )
-        
-        # replace the __init__ with this __init_mpy
-        if file == "__init__mpy.py":
-            destination = "../godafoss/lib/godafoss/__init__.mpy"
+        destination = \
+            "../godafoss/lib/godafoss/g/" + destination
         
         s = f"python -m mpy_cross -o {destination} {source}"
         print( s )

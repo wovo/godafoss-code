@@ -47,19 +47,22 @@ except:
     running_micropython = True
     
     _separator = "/"
+    
     import time
     initial_time = time.ticks_us()
+    
     import gc
     gc.collect()
     initial_free = gc.mem_free()
+    
     from micropython import const
 
 try:
     # the root of the godafoss library is where this file is
     _path = __file__[  : __file__.rfind( _separator ) ]
 
-    # the name of the library (should be 'godafoss', but it might be
-    # installed under a different name)
+    # the name of the library (should be 'godafoss', 
+    # but it might be installed under a different name)
     _library = _path[ _path.rfind( _separator ) + 1 : ]
 
     # used when looking for files. can be .py or .mpy
@@ -71,8 +74,7 @@ except:
 
 show_loading = False
 
-
-version = "0.1"
+from godafoss.tools.always import *
 
 
 # ===========================================================================
@@ -244,140 +246,3 @@ class autoloading:
 
 
 # ===========================================================================
-#
-# MIT license text
-#
-# ===========================================================================
-
-license = """
-Copyright 2024 Wouter van Ooijen (wouter@voti.nl)
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without
-limitation the rights to use, copy, modify, merge, publish, distribute,
-sublicense, and/or sell copies of the Software, and to permit persons to
-whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-
-
-# ===========================================================================
-
-def all( first, *args ):
-    return first.combine( *args )
-
-# ===========================================================================
-
-def sign( x ):
-   return 1 if x > 0 else -1 if x < 0 else 0
-
-# ===========================================================================
-
-def less( x, n = 1 ):
-   return x - sign( x ) * n
-
-# ===========================================================================
-
-def within(
-    a: any,
-    low: any,
-    high: any
-) -> bool:
-    """
-    test whether a value is between two bounds
-
-    :param a: any
-        the value to be checked
-
-    :param low: any
-        the lower bound to check the value against
-
-    :param high: any
-        the higher bound to check the value against
-
-    :result: any
-        whether a is in the trange [low..high]
-
-    This function returns whether a is between low and high.
-    The low and high values are included in the allowed range.
-
-    Low and high must be in order: low =< high.
-    If they are not the function will return False.
-
-    examples::
-    $insert_example( "test_tools.py", "within example", 1 )
-    """
-    return ( a >= low ) and ( a <= high )
-
-# ===========================================================================
-
-def clamp(
-    x: any,
-    low: any,
-    high: any
-) -> any:
-    """
-    x, clamped to the nearest value in the range [low..high]
-
-    :param x: any
-        the value to clamp within the range [low..high]
-
-    :param low: any
-        the lower bound of the clamp interval
-
-    :param high: any
-        the higher bound of the clamp interval
-
-    :result: any
-        either x, or the nearest value in the range [low..high]
-
-    This function returns max( low, min( x, high ) ).
-
-    examples::
-    $insert_example( "test_tools.py", "clamp example", 1 )
-    """
-
-    return max( low, min( x, high ) )
-
-
-# ===========================================================================
-
-def make_tuple(
-    *args: any
-) -> any:
-    """
-    make a tuple from a tuple or list, or from a number of arguments
-
-    :param \*args: any
-        the arguments are to be turned into a tuple
-
-    :result: any
-        a tuple constructed from the \*args
-
-    When called with one argument, which is a list or a tuple,
-    this function returns it as a tuple.
-    Otherwise, it returns a tuple of its argument(s).
-
-    examples::
-    $insert_example( "test_tools.py", "make_tuple example", 1 )
-    """
-
-    if len( args ) == 1 and isinstance( args[ 0 ], ( list, tuple ) ):
-        return tuple( args[ 0 ] )
-    else:
-        return tuple( args )
-
-
-# ===========================================================================
-

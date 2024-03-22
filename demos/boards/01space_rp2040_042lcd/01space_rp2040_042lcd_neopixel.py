@@ -11,7 +11,7 @@
 # ===========================================================================
 
 import godafoss as gf
-board = gf.board( "01space_rp2040_042lcd" )
+board = gf.board_01space_rp2040_042lcd()
 neopixel = board.neopixel()
 
 neopixel.demo()
