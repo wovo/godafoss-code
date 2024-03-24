@@ -19,14 +19,18 @@ def report_memory_and_time():
     """
 
     import time
-    ms = ( time.ticks_us() - gf.initial_time ) // 1000
+    ms = ( gf.time_us() - gf.initial_time ) // 1000
     
-    import gc
-    gc.collect()
-    free = gc.mem_free()
-    b = gf.initial_free - free
+    try:
+        import gc
+        gc.collect()
+        free = gc.mem_free()
+        b = gf.initial_free - free
+        s = ", memory {b} bytes ({gf.initial_free}->{free})"
+    except:
+        s = ""    
     
-    print( f"time {ms} ms, memory {b} bytes ({gf.initial_free}->{free})" )
+    print( f"time {ms} ms {s}" )
 
 
 # ===========================================================================

@@ -27,9 +27,15 @@ class gpio_in( gf.pin_in ):
         self,
         pin_nr: int
     ) -> None:
-        import machine
-        self._pin = machine.Pin( pin_nr, machine.Pin.IN )
-        gf.pin_in.__init__( self )
+        if gf.running_micropython:    
+            import machine
+            self._pin = machine.Pin( pin_nr, machine.Pin.IN )
+            gf.pin_in.__init__( self )
+        else:
+            import RPi.GPIO as GPIO
+            GPIO.setmode( GPIO.BCM )
+            GPIO.setup( pin_nr, GPIO.IN )
+            self._pin_nr = pin_nr               
 
     # =======================================================================
 
@@ -38,7 +44,10 @@ class gpio_in( gf.pin_in ):
     ) -> None:
         """
         """
-        return self._pin.value()
+        if gf.running_micropython:        
+            return self._pin.value()
+        else:
+            return GPIO.input( self._pin_nr )
 
     # =======================================================================
 

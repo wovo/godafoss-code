@@ -27,21 +27,35 @@ class gpio_in_out( gf.pin_in_out ):
         self,
         pin_nr: int
     ) -> None:
-        import machine
-        self._pin = machine.Pin( pin_nr, machine.Pin.IN )
-        gf.pin_in_out.__init__( self )
+        if gf.running_micropython:    
+            import machine
+            self._pin = machine.Pin( pin_nr, machine.Pin.IN )
+            gf.pin_in_out.__init__( self )
+        else:
+            import RPi.GPIO as GPIO
+            GPIO.setmode( GPIO.BCM )
+            GPIO.setup( pin_nr, GPIO.IN )
+            self._pin_nr = pin_nr                   
 
     # =======================================================================
 
     def direction_set_input( self ) -> None:
-        import machine
-        self._pin.init( machine.Pin.IN )
+        if gf.running_micropython:      
+            import machine
+            self._pin.init( machine.Pin.IN )
+        else:
+            import RPi.GPIO as GPIO        
+            GPIO.setup( self.pin_nr, GPIO.IN )        
 
     # =======================================================================
 
     def direction_set_output( self ) -> None:
-        import machine
-        self._pin.init( machine.Pin.OUT )
+        if gf.running_micropython:     
+            import machine
+            self._pin.init( machine.Pin.OUT )
+        else:
+            import RPi.GPIO as GPIO        
+            GPIO.setup( self.pin_nr, GPIO.OUT )                  
 
     # =======================================================================
 
@@ -50,7 +64,10 @@ class gpio_in_out( gf.pin_in_out ):
     ) -> None:
         """
         """
-        return self._pin.value()
+        if gf.running_micropython:        
+            return self._pin.value()
+        else:
+            return GPIO.input( self._pin_nr )
 
     # =======================================================================
 
@@ -64,7 +81,11 @@ class gpio_in_out( gf.pin_in_out ):
         :param value: (bool)
             the new pin value (level)
         """
-        self._pin.value( value )
+        if gf.running_micropython:
+            self._pin.value( value )
+        else:   
+            import RPi.GPIO as GPIO
+            GPIO.output( self._pin_nr, GPIO.HIGH if value else GPIO.LOW ) 
 
     # =======================================================================
 

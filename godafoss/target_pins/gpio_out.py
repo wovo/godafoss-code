@@ -27,8 +27,14 @@ class gpio_out( gf.pin_out ):
         self,
         pin_nr: int
     ) -> None:
-        import machine
-        self._pin = machine.Pin( pin_nr, machine.Pin.OUT )
+        if gf.running_micropython:
+            import machine
+            self._pin = machine.Pin( pin_nr, machine.Pin.OUT )
+        else:
+            import RPi.GPIO as GPIO
+            GPIO.setmode( GPIO.BCM )
+            GPIO.setup( pin_nr, GPIO.OUT )
+            self._pin_nr = pin_nr   
         gf.pin_out.__init__( self )
 
     # =======================================================================
@@ -43,7 +49,11 @@ class gpio_out( gf.pin_out ):
         :param value: (bool)
             the new pin value (level)
         """
-        self._pin.value( value )
+        if gf.running_micropython:
+            self._pin.value( value )
+        else:   
+            import RPi.GPIO as GPIO
+            GPIO.output( self._pin_nr, GPIO.HIGH if value else GPIO.LOW ) 
 
     # =======================================================================
 

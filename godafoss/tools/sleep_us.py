@@ -8,16 +8,16 @@
 #
 # ===========================================================================
 
+import godafoss as gf
+
 import time
 
 # ===========================================================================
 
 def sleep_us( t: int ) -> None:
-    try:
-        # MicroPython
+    if gf.running_micropython:
         time.sleep_us( t )
-    except:
-        # native Python
+    else:
         time.sleep( t / 1_000_000 )
 
 # ===========================================================================

@@ -42,6 +42,9 @@ try:
     const = lambda x: x
     uint = None
     
+    import time
+    initial_time = time.monotonic_ns() // 1000
+    
 except:
     # so this must be MicroPython
     running_micropython = True
