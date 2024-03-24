@@ -17,7 +17,7 @@ class repeater:
 
     This iterator is usefull for iterative demos that by default
     must run forever, but might be used to run a fixed numer of times.
-    
+
     The first iterator value is 0, the next is 1.
     When a number of iterations is specified, the value increments,
     otherwise it remains 1.

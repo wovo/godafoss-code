@@ -43,6 +43,7 @@ def run_tests( name: str = None ):
     gf.unit_test_bytes()
     gf.unit_test_repeater()
     gf.unit_test_immutable()
+    gf.unit_test_no_new_attributes()
     gf.unit_test_fraction()
     gf.unit_test_temperature()
     gf.unit_test_xy()
@@ -81,7 +82,7 @@ def fixed_lines( file ):
 def check_one_source_file( path, file ):
 
     # some files by necessity contain long lines
-    check_long_lines = not file in ( "intro.py" )
+    check_long_lines = path.find( "docs" ) == -1
 
     # some files can't be loaded because they reply on MicroPython
     # -specific features
@@ -97,7 +98,8 @@ def check_one_source_file( path, file ):
     # -specific features
     if file in (
         "spi.py",
-        "target_rp2040.py"
+        "target_rp2040.py",
+        "__init__mpy.py"
     ):
         return
 
@@ -184,7 +186,10 @@ def test():
        cov.report( show_missing = True )
 
     if not gf.running_micropython:
-        for entry in glob.glob( "godafoss/**/__pycache__", recursive = True ):
+        for entry in glob.glob(
+            "godafoss/**/__pycache__",
+            recursive = True
+        ):
             shutil.rmtree( entry )
 
 

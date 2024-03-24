@@ -1,181 +1,456 @@
 # ===========================================================================
 #
-# file     : gf_xpt2046.py
+# file     : sx127x.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
 # license  : MIT license, see license variable in the __init__.py
 #
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the xpt2046 touch screen interface driver class.
-#
 # ===========================================================================
 
-from time import sleep
-from machine import SPI, Pin
-import gc
+import godafoss as gf
 
-PA_OUTPUT_RFO_PIN = 0
-PA_OUTPUT_PA_BOOST_PIN = 1
 
-# registers
-REG_FIFO = 0x00
-REG_OP_MODE = 0x01
-REG_FRF_MSB = 0x06
-REG_FRF_MID = 0x07
-REG_FRF_LSB = 0x08
-REG_PA_CONFIG = 0x09
-REG_LNA = 0x0c
-REG_FIFO_ADDR_PTR = 0x0d
+# ===========================================================================
 
-REG_FIFO_TX_BASE_ADDR = 0x0e
-FifoTxBaseAddr = 0x00
-# FifoTxBaseAddr = 0x80
+class sx127x:
 
-REG_FIFO_RX_BASE_ADDR = 0x0f
-FifoRxBaseAddr = 0x00
-REG_FIFO_RX_CURRENT_ADDR = 0x10
-REG_IRQ_FLAGS_MASK = 0x11
-REG_IRQ_FLAGS = 0x12
-REG_RX_NB_BYTES = 0x13
-REG_PKT_RSSI_VALUE = 0x1a
-REG_PKT_SNR_VALUE = 0x1b
-REG_MODEM_CONFIG_1 = 0x1d
-REG_MODEM_CONFIG_2 = 0x1e
-REG_PREAMBLE_MSB = 0x20
-REG_PREAMBLE_LSB = 0x21
-REG_PAYLOAD_LENGTH = 0x22
-REG_FIFO_RX_BYTE_ADDR = 0x25
-REG_MODEM_CONFIG_3 = 0x26
-REG_RSSI_WIDEBAND = 0x2c
-REG_DETECTION_OPTIMIZE = 0x31
-REG_DETECTION_THRESHOLD = 0x37
-REG_SYNC_WORD = 0x39
-REG_DIO_MAPPING_1 = 0x40
-REG_VERSION = 0x42
+    """
+    sx127x chip driver
+    
+    This is a driver for the LoRa mode of the Semtech sx127x 
+    (sx1272, sx1276, sx1277, sx1278, sx1279 ) series of chips. 
+    The FSK/OOK mode of these chips is not supported.
+    
+    Some of these chips support a smaller range of settings than others.
+    It is up to the user to check that the setting is valid
+    for the chip that is used. t
+    The driver methods just write the setting.
+    
+    The driver supports raw LoRa, not LoRaWAN.
+    """
 
-# invert IQ
-REG_INVERTIQ = 0x33
-RFLR_INVERTIQ_RX_MASK = 0xBF
-RFLR_INVERTIQ_RX_OFF = 0x00
-RFLR_INVERTIQ_RX_ON = 0x40
-RFLR_INVERTIQ_TX_MASK = 0xFE
-RFLR_INVERTIQ_TX_OFF = 0x01
-RFLR_INVERTIQ_TX_ON = 0x00
+    class registers:
+        fifo                  = gf.const( 0x00 )
+        op_mode               = gf.const( 0x01 )
+        frf_msb               = gf.const( 0x06 )
+        frf_mid               = gf.const( 0x07 )
+        frf_lsb               = gf.const( 0x08 )
+        pa_config             = gf.const( 0x09 )
+        ocp                   = gf.const( 0x0b )
+        lna                   = gf.const( 0x0c )
+        fifo_addr_ptr         = gf.const( 0x0d )
+        fifo_tx_base_addr     = gf.const( 0x0e )
+        fifo_rx_base_addr     = gf.const( 0x0f )
+        fifo_rx_current_addr  = gf.const( 0x10 )
+        irq_flags             = gf.const( 0x12 )
+        rx_nb_bytes           = gf.const( 0x13 )
+        pkt_snr_value         = gf.const( 0x19 )
+        pkt_rssi_value        = gf.const( 0x1a )
+        rssi_value            = gf.const( 0x1b )
+        modem_config_1        = gf.const( 0x1d )
+        modem_config_2        = gf.const( 0x1e )
+        preamble_msb          = gf.const( 0x20 )
+        preamble_lsb          = gf.const( 0x21 )
+        payload_length        = gf.const( 0x22 )
+        modem_config_3        = gf.const( 0x26 )
+        freq_error_msb        = gf.const( 0x28 )
+        freq_error_mid        = gf.const( 0x29 )
+        freq_error_lsb        = gf.const( 0x2a )
+        rssi_wideband         = gf.const( 0x2c )
+        detection_optimize    = gf.const( 0x31 )
+        invertiq              = gf.const( 0x33 )
+        detection_threshold   = gf.const( 0x37 )
+        sync_word             = gf.const( 0x39 )
+        invertiq2             = gf.const( 0x3b )
+        dio_mapping_1         = gf.const( 0x40 )
+        version               = gf.const( 0x42 )
+        pa_dac                = gf.const( 0x4d )    
 
-REG_INVERTIQ2 = 0x3B
-RFLR_INVERTIQ2_ON = 0x19
-RFLR_INVERTIQ2_OFF = 0x1D
-
-# modes
-MODE_LONG_RANGE_MODE = 0x80  # bit 7: 1 => LoRa mode
-MODE_SLEEP = 0x00
-MODE_STDBY = 0x01
-MODE_TX = 0x03
-MODE_RX_CONTINUOUS = 0x05
-MODE_RX_SINGLE = 0x06
-
-# PA config
-PA_BOOST = 0x80
-
-# IRQ masks
-IRQ_TX_DONE_MASK = 0x08
-IRQ_PAYLOAD_CRC_ERROR_MASK = 0x20
-IRQ_RX_DONE_MASK = 0x40
-IRQ_RX_TIME_OUT_MASK = 0x80
-
-# Buffer size
-MAX_PKT_LENGTH = 255
-
-__DEBUG__ = True
-
-class SX127x:
-
-    default_parameters = {
-            'frequency': 868E6, 
-            'tx_power_level': 2, 
-            'signal_bandwidth': 125E3,    
-            'spreading_factor': 8, 
-            'coding_rate': 5, 
-            'preamble_length': 8,
-            'implicit_header': False, 
-            'sync_word': 0x12, 
-            'enable_CRC': False,
-            'invert_IQ': False,
-            }
-
-    def __init__(self,
-                 spi,
-                 pins,
-                 parameters=default_parameters):
-        
+    # =======================================================================
+    
+    def __init__(
+        self,
+        spi: machine.SPI, 
+        data_command: [ int, gf.pin_out, gf.pin_in_out, gf.pin_oc ],
+        chip_select: [ int, gf.pin_out, gf.pin_in_out, gf.pin_oc ],
+        configuration: sx127x_configuration = gf.sx127x_configuration()
+    ) -> None:
+    
         self._spi = spi
-        self._pins = pins
-        self._parameters = parameters
-        self._lock = False
+        self._data_command = gf.make_pin_out( data_command )
+        self._chip_select = gf.make_pin_out( chip_select )    
 
-        # setting pins
-        if "dio_0" in self._pins:
-            self._pin_rx_done = Pin(self._pins["dio_0"], Pin.IN)
-        if "ss" in self._pins:
-            self._pin_ss = Pin(self._pins["ss"], Pin.OUT)
-        if "led" in self._pins:
-            self._led_status = Pin(self._pins["led"], Pin.OUT)
-
-        # check hardware version
-        init_try = True
-        re_try = 0
-        while init_try and re_try < 5:
-            version = self.read_register(REG_VERSION)
-            re_try = re_try + 1
-            if version != 0:
-                init_try = False
-        if version != 0x12:
-            raise Exception('Invalid version.')
-
-        if __DEBUG__:
-            print("SX version: {}".format(version))
-
-        # put in LoRa and sleep mode
+        self.config( configuration )
+        
+    # =======================================================================
+    
+    def config( 
+        self,
+        configuration: sx127x_configuration 
+    ) -> None:
+    
+        # some settinngs can only be changed in sleep mode
         self.sleep()
 
-        # config
-        self.set_frequency(self._parameters['frequency'])
-        self.set_signal_bandwidth(self._parameters['signal_bandwidth'])
+        self.frequency( configuration.frequency )
+        self.bandwidth( configuration.bandwidth  )
+        self.spreading_factor( configuration.spreading_factor )
+        self.coding_rate( configuration.coding_rate )
+        self.preamble_length( configuration.preamble_length )        
+        self.sync_word( configuration.sync_word )  
+        self.enable_crc( configuration.enable_crc )  
+        self.header( implicit = configuration.implicit_header )  
+        self.tx_power( configuration.tx_power )  
+        self.rx_gain( configuration.rx_gain )
+        self.rx_boost( configuration.rx_boost )
+        self.auto_agc( configuration.auto_agc )
+        self.low_data_rate( 
+            1000 / ( 
+                configuration.bandwidth / 
+                2 ** configuration.spreading_factor 
+            ) > 16 
+        )      
 
-        # set LNA boost
-        self.write_register(REG_LNA, self.read_register(REG_LNA) | 0x03)
 
-        # set auto AGC
-        self.write_register(REG_MODEM_CONFIG_3, 0x04)
-
-        self.set_tx_power(self._parameters['tx_power_level'])
-        self._implicit_header_mode = None
-        self.implicit_header_mode(self._parameters['implicit_header'])
-        self.set_spreading_factor(self._parameters['spreading_factor'])
-        self.set_coding_rate(self._parameters['coding_rate'])
-        self.set_preamble_length(self._parameters['preamble_length'])
-        self.set_sync_word(self._parameters['sync_word'])
-        self.enable_CRC(self._parameters['enable_CRC'])
         self.invert_IQ(self._parameters["invert_IQ"])
 
-        # set LowDataRateOptimize flag if symbol time > 16ms (default disable on reset)
-        # self.write_register(REG_MODEM_CONFIG_3, self.read_register(REG_MODEM_CONFIG_3) & 0xF7)  # default disable on reset
-        bw_parameter = self._parameters["signal_bandwidth"]
-        sf_parameter = self._parameters["spreading_factor"]
 
-        if 1000 / (bw_parameter / 2**sf_parameter) > 16:
-            self.write_register(
-                REG_MODEM_CONFIG_3, 
-                self.read_register(REG_MODEM_CONFIG_3) | 0x08
-            )
+
 
         # set base addresses
         self.write_register(REG_FIFO_TX_BASE_ADDR, FifoTxBaseAddr)
         self.write_register(REG_FIFO_RX_BASE_ADDR, FifoRxBaseAddr)
+    
 
-        self.standby()
+    # =======================================================================
+    #
+    # register access
+    #
+    # =======================================================================
+
+    def register_read(
+        self, 
+        address: int
+    ) -> int:
+        self._chip_select.write( 0 )  
+        self._spi.write( bytes( [ address ] ) )
+        response = bytearray( 1 )
+        self._spi.readinto( response )
+        self._chip_select.write( 1 )  
+        return int( response[ 0 ] )
+
+    # =======================================================================
+
+    def register_write(
+        self, 
+        address: int, 
+        value: int
+    ) -> None:
+        self._chip_select.write( 0 )  
+        self._spi.write( bytes( [ address | 0x80, value & 0xFF ] ) )
+        self._chip_select.write( 1 )  
+
+    # =======================================================================
+    #
+    # All mode_* functions also keep the radio mode LoRa
+    #
+    # =======================================================================
+    
+    def mode_sleep( self ):
+    
+    	# must write twice: once to get into sleep,
+        # once to change the radio mode to LoRa, 
+        # because aparently the mode can only be changed when
+        # *in* sleep, not even when *entering* sleep
+        
+        self.register_write( self.registers.op_mode, 0x80 )
+        self.register_write( self.registers.op_mode, 0x80 )
+    
+    # =======================================================================
+
+    def mode_standby( self ):
+        self.register_write( self.registers.op_mode, 0x81 )
+    
+    # =======================================================================
+
+    def mode_transmit( self ):
+        self.register_write( self.registers.op_mode, 0x83 )
+    
+    # =======================================================================
+
+    def mode_receive_continuous( self ):
+        self.register_write( self.registers.op_mode, 0x85 ) 
+    
+    # =======================================================================
+
+    def mode_receive_single( self ):
+        self.register_write( self.registers.op_mode, 0x86 )    
+
+    # =======================================================================
+    #
+    # radio settings
+    #
+    # =======================================================================
+    
+    def frequency( 
+        self, 
+        f: int 
+    ) -> None:
+        f = ( f << 19 ) // 32_000_000
+        self.register_write( self.registers.frf_msb, f >> 16 )
+        self.register_write( self.registers.frf_mid, f >> 8  )
+        self.register_write( self.registers.frf_lsb, f >> 0  )        
+    
+    # =======================================================================
+
+    def bandwidth( 
+        self
+        bw: int 
+    ) -> None:
+        v = 9
+        for n, f in enumerate(
+            7.8E3, 10.4E3, 15.6E3, 20.8E3, 
+            31.25E3, 41.7E3, 62.5E3, 125E3, 250E3
+        ):
+            if f < bw:
+                v = n
+
+        old = self.register_read( self.registers.modem_config_1 )
+        self.register_write( 
+             self.registers.modem_config_1, ( old & 0x0f ) | ( v << 4 ) 
+        )
+        
+    # =======================================================================
+
+    def spreading_factor( 
+        self,
+        sf: int 
+    ) -> None:
+        sf = gf.clamp( sf, 6, 12 );
+
+        if sf == 6:
+            self.register_write( self.registers.detection_optimize, 0xc5 )
+            self.register_write( self.registers.detection_threshold, 0x0c )
+        else:
+            self.register_write( self.registers.detection_optimize, 0xc3 )
+            self.register_write( self.registers.detection_threshold, 0x0a )
+        
+        old = self.register_read( self.registers.modem_config_2 )
+        self.register_write( 
+            self.registers.modem_config_2, 
+            ( old & 0x0f ) | ( sf << 4 )  
+        )  
+    
+    # =======================================================================
+
+    def coding_rate( 
+        self,
+        r: int 
+    ) -> None:
+        v = self.register_read( self.registers.modem_config_1 )
+        v &= 0xf1
+        v |= ( std::clamp( (int) r, 5, 8 ) - 4 ) << 1
+        self.register_write( self.registers.modem_config_1, v )  
+    
+    # =======================================================================
+
+    def preamble_length( 
+        self,
+        length: int 
+    ) -> None:
+        self.register_write( self.registers.preamble_msb, length >> 8 )
+        self.register_write( self.registers.preamble_lsb, length >> 0 )   
+
+    # =======================================================================
+
+    def header( 
+        self
+        implicit: bool
+    ) -> None:
+        v = self.register_read( self.registers.modem_config_1 )
+        v = v | 0x01 if implicit else v & ~0x01
+        self.register_write( self.registers.modem_config_1, v  )        
+    
+    # =======================================================================
+
+    def sync_word( 
+        self,
+        w: int 
+    ) -> None:
+        self.register_write( self.registers.sync_word, w )     
+
+    # =======================================================================
+
+    def crc( 
+        self,
+        enabled: bool 
+    ) -> None:
+        v = self.register_read( self.registers.modem_config_2 )
+        v = v | 0x04 if enabled else v & ~ 0x04          
+        self.register_write( self.registers.modem_config_2, v )       
+    
+    # =======================================================================
+
+    def tx_power( 
+        self, 
+        power: int, 
+        boost: bool 
+    ) -> None:
+    
+        if boost:
+            # 20dBm not supported
+            power = std::clamp( power, 2, 17 )
+            v = 0x80 | ( power - 2 )
+            
+        else:
+            # probably not correct,  but not used
+            p = std::clamp( p, 2, 17 );
+            v = 0x40 | ( power - 2 )
+            
+        self.register_write( self.registers.pa_config, v )
+
+    # =======================================================================
+
+    def rx_gain( 
+        self,
+        gain: int
+    ) -> None:
+        gain = std::clamp( gain, 1, 6 )
+        v = self.read_register( self.registers.lna )
+        v = ( v & 0x1f ) | ( gain << 5 )
+        self.write_register( self.registers.lna, v ) 
+        
+    # =======================================================================
+
+    def rx_boost( 
+        self,
+        boost: bool 
+    ) -> None:
+       v = self.read_register( self.registers.lna )
+       v = v | 0x03 if boost else v & ~ 0x03 
+       self.write_register( self.registers.lna, v )       
+    
+    # =======================================================================
+
+    def low_data_rate( 
+        self,
+        ldr: bool 
+    ) -> None:
+       v = self.read_register( self.registers.modem_config_3 )
+       v = v | 0x08 if ldr else v & ~ 0x08 
+       self.write_register( self.registers.modem_config_3, v )       
+    
+    # =======================================================================
+
+    def auto_agc( 
+        self,
+        auto: bool 
+    ) -> None:
+       v = self.read_register( self.registers.modem_config_3 )
+       v = v | 0x04 if ldr else v & ~ 0x04 
+       self.write_register( self.registers.modem_config_3, v )       
+    
+    # =======================================================================
+
+    // ======================================================================
+    //
+    // transmit
+    //
+    // ======================================================================   
+
+    bool transmitting(){
+    	auto x = register_read( reg::op_mode );
+    	(void) x;
+        return ( register_read( reg::op_mode ) & 0x07 ) == 0x03;
+    } 
+
+    template< unsigned int s >    
+    void transmit( std::array< uint8_t, s > & buffer ){
+        _transmit( &buffer[ 0 ], s );
+    }    
+    
+    void _transmit( const uint8_t *buffer, int size ){
+        mode_standby();
+        size = std::clamp( (int) size, 0, 256 );
+        register_write( reg::fifo_tx_base_addr, 0 );
+        register_write( reg::fifo_addr_ptr, 0 );
+        for( int i = 0; i < size; ++i ){
+            register_write( reg::fifo, buffer[ i ] );
+        }    
+        register_write( reg::payload_length, size );
+        mode_transmit();
+    }  
+    
+    // ======================================================================
+    //
+    // receive
+    //
+    // ======================================================================
+    
+    template< unsigned int s >
+    void receive( std::array< uint8_t, s > & buffer, int & n ){
+        _receive( &buffer[ 0 ], s, n );
+    }
+
+    void _receive( uint8_t *buffer, int size, int & n ){
+        
+        register_write( reg::fifo_rx_current_addr, 0 );    
+        mode_receive_single();
+
+        //dump();
+
+        while( ! packet_received() ){}
+        //dump();
+
+        n = std::clamp( (int) register_read( reg::rx_nb_bytes ), 0, size );
+        register_write( 
+            reg::fifo_addr_ptr, 
+            register_read( reg::fifo_rx_current_addr ) 
+        );
+        for( int i = 0; i < n; ++i ){
+            buffer[ i ] = register_read( reg::fifo );
+        }
+    }
+    
+    uint8_t irq_flags(){
+        return  register_read( reg::irq_flags );
+    }
+    
+    bool packet_received(){
+        
+        //register_write( reg::irq_flags, ~ 0x40 );
+
+        auto flags = irq_flags();
+        // must be packet-received and not crc error
+        if(( flags & 0x60 ) == 0x40 ){
+            register_write( reg::irq_flags, 0x60 );
+            return true;
+        }
+        
+        // clear a CRC error
+        register_write( reg::irq_flags, 0x20 );
+
+        auto mode = register_read( reg::op_mode );
+        if(( mode & 0x07 ) < 0x05 ){
+            mode_receive_single();    
+        }
+        
+        return false;
+    }
+    
+    
+    def packet_rssi( self ) -> int:
+        rssi = self.read_register( reg::pkt_rssi_value )
+        return (rssi - (164 if self._frequency < 868E6 else 157))
+
+    def packet_snr( self ) -> float:
+        snr = self.read_register( reg::pkt_snr_value )
+        return snr * 0.25    
+
+        
+    
+    # =======================================================================
 
     def begin_packet(self, implicit_header_mode = False):
         self.standby()
@@ -216,33 +491,12 @@ class SX127x:
     def set_lock(self, lock = False):
         self._lock = lock
 
-    def println(self, msg, implicit_header = False):
-        self.set_lock(True)  # wait until RX_Done, lock and begin writing.
-
-        self.begin_packet(implicit_header)
-
-        if isinstance(msg, str):
-            message = msg.encode()
-            
-        self.write(message)
-
-        self.end_packet()
-
-        self.set_lock(False) # unlock when done writing
-        self.collect_garbage()
-
     def get_irq_flags(self):
         irq_flags = self.read_register(REG_IRQ_FLAGS)
         self.write_register(REG_IRQ_FLAGS, irq_flags)
         return irq_flags
 
-    def packet_rssi(self):
-        rssi = self.read_register(REG_PKT_RSSI_VALUE)
-        return (rssi - (164 if self._frequency < 868E6 else 157))
 
-    def packet_snr(self):
-        snr = self.read_register(REG_PKT_SNR_VALUE)
-        return snr * 0.25
 
     def standby(self):
         self.write_register(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY)
@@ -282,23 +536,6 @@ class SX127x:
             (self.read_register(REG_MODEM_CONFIG_2) & 0x0f) | ((sf << 4) & 0xf0)
         )
 
-    def set_signal_bandwidth(self, sbw):
-        bins = (7.8E3, 10.4E3, 15.6E3, 20.8E3, 31.25E3, 41.7E3, 62.5E3, 125E3, 250E3)
-
-        bw = 9
-
-        if sbw < 10:
-            bw = sbw
-        else:
-            for i in range(len(bins)):
-                if sbw <= bins[i]:
-                    bw = i
-                    break
-
-        self.write_register(
-            REG_MODEM_CONFIG_1, 
-            (self.read_register(REG_MODEM_CONFIG_1) & 0x0f) | (bw << 4)
-        )
 
     def set_coding_rate(self, denominator):
         denominator = min(max(denominator, 5), 8)
@@ -311,11 +548,6 @@ class SX127x:
     def set_preamble_length(self, length):
         self.write_register(REG_PREAMBLE_MSB,  (length >> 8) & 0xff)
         self.write_register(REG_PREAMBLE_LSB,  (length >> 0) & 0xff)
-
-    def enable_CRC(self, enable_CRC = False):
-        modem_config_2 = self.read_register(REG_MODEM_CONFIG_2)
-        config = modem_config_2 | 0x04 if enable_CRC else modem_config_2 & 0xfb
-        self.write_register(REG_MODEM_CONFIG_2, config)
 
     def invert_IQ(self, invert_IQ):
         self._parameters["invertIQ"] = invert_IQ
@@ -348,21 +580,7 @@ class SX127x:
             )
             self.write_register(REG_INVERTIQ2, RFLR_INVERTIQ2_OFF)
 
-    def set_sync_word(self, sw):
-        self.write_register(REG_SYNC_WORD, sw)
 
-    def set_channel(self, parameters):
-        self.standby()
-        for key in parameters:
-            if key == "frequency":
-                self.set_frequency(parameters[key])
-                continue
-            if key == "invert_IQ":
-                self.invert_IQ(parameters[key])
-                continue
-            if key == "tx_power_level":
-                self.set_tx_power(parameters[key])
-                continue
 
     def dump_registers(self):
         for i in range(128):
@@ -372,13 +590,7 @@ class SX127x:
             else:
                 print(" | ", end="")
 
-    def implicit_header_mode(self, implicit_header_mode = False):
-        if self._implicit_header_mode != implicit_header_mode:  # set value only if different.
-            self._implicit_header_mode = implicit_header_mode
-            modem_config_1 = self.read_register(REG_MODEM_CONFIG_1)
-            config = (modem_config_1 | 0x01 
-                    if implicit_header_mode else modem_config_1 & 0xfe)
-            self.write_register(REG_MODEM_CONFIG_1, config)
+
 
     def receive(self, size = 0):
         self.implicit_header_mode(size > 0)
@@ -474,31 +686,9 @@ class SX127x:
         self.collect_garbage()
         return bytes(payload)
 
-    def read_register(self, address, byteorder = 'big', signed = False):
-        response = self.transfer(address & 0x7f)
-        return int.from_bytes(response, byteorder)
-
-    def write_register(self, address, value):
-        self.transfer(address | 0x80, value)
 
 
-    def transfer(self, address, value = 0x00):
-        response = bytearray(1)
 
-        self._pin_ss.value(0)
 
-        self._spi.write(bytes([address]))
-        self._spi.write_readinto(bytes([value]), response)
 
-        self._pin_ss.value(1)
-
-        return response
-
-    def blink_led(self, times = 1, on_seconds = 0.1, off_seconds = 0.1):
-        for i in range(times):
-            if self._led_status:
-                self._led_status.value(True)
-                sleep(on_seconds)
-                self._led_status.value(False)
-                sleep(off_seconds)
 

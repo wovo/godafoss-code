@@ -10,7 +10,11 @@ inherit:
 - store-args
 - no-additions
 
--> Louwman update connector is difficult when in box
+https://snapcraft.io/install/micropython/raspbian
+https://gpiozero.readthedocs.io/en/latest/recipes.html
+https://sourceforge.net/projects/raspberry-gpio-python/
+
+gpio_oc is not implemented!
 
 TODO
 ====

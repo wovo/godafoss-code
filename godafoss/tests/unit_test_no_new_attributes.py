@@ -1,6 +1,6 @@
 # ===========================================================================
 #
-# file     : unit_test_immutable.py
+# file     : unit_test_no_new_attributes.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
@@ -13,51 +13,39 @@ import godafoss as gf
 
 # ===========================================================================
 
-class frozen( gf.immutable ):
+class no_new( gf.no_new_attributes ):
 
     def __init__( self ):
         self.x = 5
-        self.y = 9
-        del self.y
-        gf.immutable.__init__( self )
+        gf.no_new_attributes.__init__( self )
 
 
 # ===========================================================================
 
-def unit_test_immutable():
-    print( "test immutable" )
+def unit_test_no_new_attributes():
+    print( "test no_new_attributes" )
 
-    fr = frozen()
-    assert fr.x == 5
+    nn = no_new()
+    assert nn.x == 5
+    nn.x = 42
+    assert nn.x == 42
 
     try:
-        fr.x = 9
+        nn.y = 9
         assert False
     except:
         pass
 
-    try:
-        fr.y = 9
-        assert False
-    except:
-        pass
-
-    try:
-        del fr.x
-        assert False
-    except:
-        pass
-
-    # immutable example
+    # no_new_attributes example
     import godafoss as gf
-    class im( gf.immutable ):
+    class im( gf.no_new_attributes ):
         def __init__( self ):
-            self.x = 5
-            gf.immutable.__init__( self )
+            self.complicated_name = 5
+            gf.no_new_attributes.__init__( self )
     #
-    assert im().x == 5
+    im().complicated_name = 42
     try:
-        im().x = 6
+        im().complikated_name = 42
         assert False
     except:
         pass

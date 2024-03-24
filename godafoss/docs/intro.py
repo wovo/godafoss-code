@@ -8,6 +8,8 @@
 #
 # ===========================================================================
 
+intro = None
+
 """
 $insert_image( "godafoss-waterfalls", 0, 600 )
 
@@ -34,7 +36,7 @@ If you want to use the library (as opposed to tinker with the library code)
 the preferred option is to use an image with the lbrary built in as
 frozen code. This yields the shortest startup time and the lowest RAM use.
 Images for a few targets are available, built from the latest MicroPython:
-version (1.22): 
+version (1.22):
 rp2040 (Raspberry Pi Pico),
 rp2040w (Raspberry Pi Pico with WiFi),
 esp32,
@@ -43,7 +45,7 @@ esp32c3 (RISC V),
 Teensy $.1
 .
 
-The library can be installed by using mpremote from the host 
+The library can be installed by using mpremote from the host
 (PC/laptop) command line
 (my MicroPython devices are always on com42)::
 
@@ -60,7 +62,7 @@ To use the library in its source form
 
     - clone the
       Godafoss code repository http://www.github.com/wovo/godafoss-code
-    - copy the godafoss directory to the root 
+    - copy the godafoss directory to the root
       of the target MicroPython device
       for instance using the file download funtion in Thonny
 

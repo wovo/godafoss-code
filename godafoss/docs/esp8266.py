@@ -8,6 +8,8 @@
 #
 # ===========================================================================
 
+esp8266 = None
+
 """
 esp8266
 =======
@@ -35,8 +37,8 @@ wiki https://en.wikipedia.org/wiki/ESP8266
 +------------------------+---------------------------------+
 
 The esp8266 was the first micro-controller with builkt-in WiFi that
-was both cheap and easily available. 
-It can be found in a wide variety of modules and PCBs, and in low-cost 
+was both cheap and easily available.
+It can be found in a wide variety of modules and PCBs, and in low-cost
 WiFi connected consumer products like intelligent light bulbs.
 
 The chip has no on-chip flash memory:
@@ -48,6 +50,6 @@ For new projects, the esp32 should ve preferred.
 The esp8266 can be used with the library, but it is slow.
 The amount if RAM is far too low to use the library in source form.
 With the library included in the image, simple applications
-can be run, but the start-up time can be 10s of seconds. 
+can be run, but the start-up time can be 10s of seconds.
 """
 

@@ -8,6 +8,8 @@
 #
 # ===========================================================================
 
+rp2040 = None
+
 """
 rp2040
 ======
@@ -38,13 +40,13 @@ wiki https://en.wikipedia.org/wiki/RP2040
 +-------------------------------+-----------------------------------+
 
 The rp2040 is the first and so far only micro-controller produced by
-the Raspberry foundation. 
+the Raspberry foundation.
 The chip has no on-chip flash memory:
 it is used with an external serial flash chip.
 
 The rp2040 supports Device Firmware Update over USB: powering the
 chip with a certain pin pulled low puts has the
-chip present itself as a mass storage device, 
+chip present itself as a mass storage device,
 to which a firmware file can simply be copied using the explorer.
 Thonny uses this to provide an option to directly load a
 micro-python image from the web to a connected rp2040 chip.
@@ -56,7 +58,7 @@ traditional (SPI, I2C) less traditional (one-wire, neopixel,
 LCD) hardware peripherals. The library implements a few:
 xxxx
 
-The rp2040 is available as various PCB modules. 
+The rp2040 is available as various PCB modules.
 The Raspberry Pico W adds WiFi, which is supported by
 its specific micro-python version.
 """

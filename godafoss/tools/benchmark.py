@@ -19,11 +19,11 @@ def benchmark( function, *args, **kwargs ):
     """
 
     function_name = str( f ).split( ' ' )[ 1 ]
-    
-    # local to avoid loading these modules 
+
+    # local to avoid loading these modules
     # when this decorator is not used
     from godafoss.gf_gc import collect, mem_free
-    from godafoss.gf_time import ticks_us    
+    from godafoss.gf_time import ticks_us
 
     def new_function( *args, **kwargs ):
 

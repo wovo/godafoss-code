@@ -1,6 +1,6 @@
 # ===========================================================================
 #
-# file     : report_memory_and_time.py
+# file     : sleep_us.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
@@ -8,28 +8,16 @@
 #
 # ===========================================================================
 
-import godafoss as gf
-
+import time
 
 # ===========================================================================
 
-def report_memory_and_time():
-    """
-    report memory and time used since godafoss loading started
-    """
-
-    ms = ( gf.ticks_us() - gf.initial_time ) // 1000
-
+def sleep_us( t: int ) -> None:
     try:
-        import gc
-        gc.collect()
-        free = gc.mem_free()
-        b = gf.initial_free - free
-        s = ", memory {b} bytes ({gf.initial_free}->{free})"
+        # MicroPython
+        time.sleep_us( t )
     except:
-        s = ""
-
-    print( f"time {ms} ms{s}" )
-
+        # native Python
+        time.sleep( t / 1_000_000 )
 
 # ===========================================================================

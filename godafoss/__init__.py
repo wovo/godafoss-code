@@ -35,40 +35,40 @@ import os
 try:
     # present in standard Python, but not in MicroPython
     running_micropython = False
-    
+
     _separator = os.sep
-    
+
     # Micropython built-in
     const = lambda x: x
     uint = None
-    
+
 except:
     # so this must be MicroPython
     running_micropython = True
-    
+
     _separator = "/"
-    
+
     import time
     initial_time = time.ticks_us()
-    
+
     import gc
     gc.collect()
     initial_free = gc.mem_free()
-    
+
     from micropython import const
 
 try:
     # the root of the godafoss library is where this file is
     _path = __file__[  : __file__.rfind( _separator ) ]
 
-    # the name of the library (should be 'godafoss', 
+    # the name of the library (should be 'godafoss',
     # but it might be installed under a different name)
     _library = _path[ _path.rfind( _separator ) + 1 : ]
 
     # used when looking for files. can be .py or .mpy
     # but the compiled version has the .my suffix ;)
     _suffix = __file__[ __file__.rfind( "." ) : ]
-    
+
 except:
     pass
 
@@ -159,23 +159,23 @@ def __getattr__( name ):
         # when frozen all files are lumped together in the godafoss directory
         # so no path is needed
         exec( f"from godafoss.g.{name} import {name}" )
-    
+
     except ImportError:
-    
+
         try:
             # try to find the file in the godafoss tree
             found = _import_path( _path, name )
-            
+
         except:
-        
+
             # mimic the original error
-            exec( f"from godafoss.g.{name} import {name}" )        
+            exec( f"from godafoss.g.{name} import {name}" )
 
         if found is None:
             raise AttributeError( f"unknown class '{name}'" ) from None
 
         exec( f"from {found} import {name}" )
-        
+
     _loaded_attributes[ name ] = f = eval( name )
     return f
 
@@ -206,18 +206,18 @@ class autoloading:
         obj_type: [ type or None ] = None
     ):
 
-        if show_loading:        
+        if show_loading:
             print( f"load attribute {self._class_name}.{obj}" )
 
         import gc; gc.collect()
-        
+
         name = f"{self._class_name}__{obj}"
-            
+
         try:
             print( f"from godafoss.g.{name} import {name}" )
             exec( f"from godafoss.g.{name} import {name}" )
-            
-        except:    
+
+        except:
 
             # Get the import path for the missing attribute.
             found = _import_path( _path, name )
@@ -229,7 +229,7 @@ class autoloading:
 
             # Import and retrieve the missing attribute
             exec( f"from {found} import {name}" )
-        
+
         func = constructor = eval( f"{name}" )
 
         # if it is a class, wrap its constructor in a fuction

@@ -69,7 +69,7 @@ class xy( gf.immutable ):
         for dy in range( -1, 0, +1 ):
             for dx in range( -1, 0, +1 ):
                 if ( dx != 0 ) or ( dy != 0 ):
-                yield xy( self.x + dx, self.y + dy )
+                    yield xy( self.x + dx, self.y + dy )
 
     # =======================================================================
 
@@ -78,10 +78,10 @@ class xy( gf.immutable ):
         boundary: "xy"
     ) -> "xy":
         return (
-            ( self.x >= 0 ) 
+            ( self.x >= 0 )
             and ( self.y >= 0 )
-            and ( self.x < boundary.x ) 
-            and self.y < boundary.y )
+            and ( self.x < boundary.x )
+            and ( self.y < boundary.y )
         )
 
     # =======================================================================

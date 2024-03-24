@@ -15,9 +15,11 @@ import godafoss as gf
 
 class life:
 
+    """
 - life itself is a canvas
 - you can clear it and write to it
 - you can write it to another canvas
+    """
 
     # =======================================================================
 
@@ -27,26 +29,26 @@ class life:
         wraparound: bool = False
     ):
         self.canvas = canvas
-        self.alive = [ 
-            [ 0 for _ in range( size.x ) ] 
+        self.alive = [
+            [ 0 for _ in range( size.x ) ]
             for _ in range( self.y )
-        ]    
-        self.next = [ 
-            [ 0 for _ in range( size.x ) ] 
+        ]
+        self.next = [
+            [ 0 for _ in range( size.x ) ]
             for _ in range( self.y )
-        ]    
+        ]
 
 
     # =======================================================================
 
     def generation( self ):
-        p in range( self.size ):
+        for p in range( self.size ):
             n = 0
             for d in p.around():
                 if d.within( self.size ):
                     if self.alive[ d.x ][ d.y ]:
                         n += 1
-            if n < 2:            
+            if n < 2:
                 self.next[ p.x ][ p.y ] = False
             elif n == 2:
                 self.next[ p.x ][ p.y ] = self.alive[ d.x ][ d.y ]
@@ -56,7 +58,7 @@ class life:
                 self.next[ p.x ][ p.y ] = False
         temp = self.alive
         self.alive = self.next
-        self.next = temp        
+        self.next = temp
 
 
     # =======================================================================
@@ -70,13 +72,13 @@ class life:
         alive = ink
         dead = not ink
         for p in self.size:
-            s.write( 
-                p + offset, 
+            s.write(
+                p + offset,
                 alive if self.alive[ p.x ][ p.y ] else dead
             )
-            
-        
+
+
     # =======================================================================
 
-        
+
 # ===========================================================================

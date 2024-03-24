@@ -30,17 +30,17 @@ def kitt(
 
     p = port.as_port_out()
     for iteration in gf.repeater( iterations ):
-        
+
         if iteration == 0:
             for n in range( 1 ):
                 p.write( 0 )
                 gf.sleep_us( 0 )
             gf.report_memory_and_time()
-            
+
         for n in range( p.number_of_pins ):
             p.write( 0b1 << n )
             gf.sleep_us( interval )
-            
+
         for n in range( p.number_of_pins - 2, 0, -1 ):
             p.write( 0b1 << n )
             gf.sleep_us( interval )

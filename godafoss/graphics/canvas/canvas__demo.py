@@ -1,6 +1,6 @@
 # ===========================================================================
 #
-# file     : canvas_demo.py
+# file     : canvas__demo.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
@@ -22,7 +22,7 @@ def canvas__demo(
     pixels = s.size.x * s.size.y
 
     for iteration in gf.repeater( iterations ):
-        
+
         if iteration == 0:
             gf.report_memory_and_time()
 
@@ -46,8 +46,8 @@ def canvas__demo(
             "Hello fantastic brave new world!\nusing Godafoss",
             iterations = 1
         )
-        
+
         if iteration == 0:
-            gf.report_memory_and_time()        
+            gf.report_memory_and_time()
 
 # ===========================================================================

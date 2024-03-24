@@ -35,12 +35,12 @@ def blink(
 
     p = gf.make_pin_out( pin )
     for iteration in gf.repeater( iterations ):
-        
+
         if iteration == 0:
             p.pulse( 0, 0 )
             gf.report_memory_and_time()
-            
+
         p.pulse( high_time, low_time )
-        
+
 
 # ===========================================================================

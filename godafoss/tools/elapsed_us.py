@@ -11,7 +11,7 @@
 def elapsed_us( f, *args, **kwargs ):
     """
     time a function call
-    
+
     This function callss the function f with the provided parameters
     and returns the elapsed time in microseconds
     """

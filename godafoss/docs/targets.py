@@ -8,10 +8,12 @@
 #
 # ===========================================================================
 
+targets = None
+
 """
 
 The library can be used on all MicroPython ports.
-The table below shows the target chips and boards 
+The table below shows the target chips and boards
 on which I tested the library, and their key features.
 Most targets have a dedicated description.
 
