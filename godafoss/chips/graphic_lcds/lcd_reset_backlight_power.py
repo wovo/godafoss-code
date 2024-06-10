@@ -4,11 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
-# license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the lcd_rst_bl_power class.
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -23,19 +19,19 @@ class lcd_reset_backlight_power:
     
     :param rst: (None, int, pin_out, pin_in_out, pin_oc)
         reset pin; active low; high for normal operation
-        
+
     :param bl: (None, int, pin_out, pin_in_out, pin_oc)
         backlight pin; active high
-        
+
     :param power: (None, int, pin_out, pin_in_out, pin_oc)
         power pin, active high
-        
+
     :param reset_duration: (int)
         width of a reset pulse, in microseconds (default 1)
-        
+
     :param reset_wait: (int)
         wait time after a reset, in microseconds (default 1)
-        
+
     This class provides the basic functions for a typical LCD
     of having reset, backlight and power pins.
     All pins are optional, and active high.    .
@@ -43,6 +39,7 @@ class lcd_reset_backlight_power:
     and resets the lcd.
     
     $macro_start lcd_reset_backlight_power_parameters
+    
     :param reset: ($macro_insert make_pin_out_types)
         reset pin (optional), active low, high for normal operation
         
@@ -50,7 +47,8 @@ class lcd_reset_backlight_power:
         backlight pin (optional), active high
         
     :param power: ($macro_insert make_pin_out_types)
-        power pin (optional), active high    
+        power pin (optional), active high   
+        
     $macro_end
     
     $macro_start lcd_reset_backlight_power_functionality
@@ -72,9 +70,9 @@ class lcd_reset_backlight_power:
         reset_duration: int = 1_000,
         reset_wait: int = 1_000
     ) -> None:
-        self._reset = gf.make_pin_out( reset )
-        self._backlight = gf.make_pin_out( backlight )
-        self._power = gf.make_pin_out( power )
+        self._reset = gf.pin_out( reset )
+        self._backlight = gf.pin_out( backlight )
+        self._power = gf.pin_out( power )
         self._reset_duration = reset_duration
         self._reset_wait = reset_wait
     

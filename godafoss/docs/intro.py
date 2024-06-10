@@ -4,101 +4,150 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
-intro = None
-
 """
-$insert_image( "godafoss-waterfalls", 0, 600 )
+$$insert_image( "godafoss-waterfalls", 700, link="https://wovo.github.io/godafoss" )
 
-Purpose
--------
-
-Godafossis a library for use with MicroPython.
-It provides a consistent interface to the hardware of the target chip or
-module itself, and to various peripheral chips and modules.
-The emphasis is on portability and abstraction,
-rather than speed or providing all features of all peripherals.
+This is work in progress
+=============================================================================
+**The code and the documentation might (or rather, will) be out of sync.**
 
 Name
--------
-The Godafoss fall in northern Iceland is the place where, according to a
-(probably fabricated) legend, lawspeaker and former pagan priest Thorgeir
-Ljosvetningagodi threw his statues of Norse gods in the water to express
-his support for Christianity, thus avoiding a civil war.
+=============================================================================
 
+The
+`Godafoss waterfall <https://en.wikipedia.org/wiki/Go%C3%B0afoss>`_
+in northern Iceland is the place where,
+according to a (probably fabricated) legend, around the year 1000,
+lawspeaker and pagan priest
+`Thorgeir Ljosvetningagodi Thorkelsson
+<https://en.wikipedia.org/wiki/Thorgeir_Ljosvetningagodi>`_
+threw his statues of Norse gods in the water to express
+`his support for Christianity
+<https://sagamuseum.is/overview/#thorgeir-ljosvetningagodi>`_,
+thus avoiding a civil war.
 
-Use
----
-If you want to use the library (as opposed to tinker with the library code)
-the preferred option is to use an image with the lbrary built in as
-frozen code. This yields the shortest startup time and the lowest RAM use.
-Images for a few targets are available, built from the latest MicroPython:
-version (1.22):
-rp2040 (Raspberry Pi Pico),
-rp2040w (Raspberry Pi Pico with WiFi),
-esp32,
-esp32s2 (single CPU),
-esp32c3 (RISC V),
-Teensy $.1
+Purpose
+=============================================================================
+
+Godafoss is a library for use with
+`MicroPython <https://micropython.org>`_,
+the Python port for micro-controllers.
+It grew out of my frustration that many MicroPython libraries
+exist, but don't combine well.
+So the obvious solution is
+`to create one more <https://xkcd.com/927/>`_, in which I can
+throw my MicroPython work.
+
+The godafoss library provides a consistent interface
+to the hardware of the target chip or
+module itself, and to various peripheral chips and modules.
+The emphasis is on ease of use, portability and abstraction,
+rather than ultimate speed or providing all features of all peripherals.
+
+Installation
+=============================================================================
+
+**Built into a MicroPython Image**
+
+The preferred option is to use a MicroPython image with the library built in.
+This is easy, and yields the shortest startup time and the lowest RAM use.
+Images for selected targets are available,
+built from recent (1.22) MicroPython sources:
+`rp2040 <./images/rp2040-gf.uf2>`_,
+`rp2040w <./images/rp2040w-gf.uf2>`_ (with WiFi),
+`esp8266 <./images/esp8266-gf.bin>`_,
+`esp32 <./images/esp32-gf.bin>`_ (dual core LX7),
+`esp32s2 <./images/esp32s2-gf.bin>`_ (single core LX7),
+`esp32s3 <./images/esp32s3-gf.bin>`_ (dual core LX7),
+`esp32c2 <./images/esp32c2-gf.bin>`_ (single core RISC-V),
+`esp32c3 <./images/esp32c3-gf.bin>`_ (dual core RISC-V),
+`teensy 4.0 <./images/teensy40-gf.hex>`_,
+`teensy 4.1 <./images/teensy41-gf.hex>`_
 .
 
-The library can be installed by using mpremote from the host
-(PC/laptop) command line
-(my MicroPython devices are always on com42)::
+**Compiled**
 
-    python -m mpremote connect com42 mip install github:wovo/godafoss
+Alternatively, the compiled form of the library (.mpy files)
+can be installed using
+`mpremote <https://docs.micropython.org/en/latest/reference/mpremote.html>`_
+on the host
+(PC/laptop) command line (my MicroPython devices are always on com42)::
 
-Or if you prefer to install the manually:
+    mpremote connect com42 mip install github:wovo/godafoss
+
+Or if you prefer to install the .mpy files manually:
 
     - clone http://www.github.com/wovo/godafoss
-    - copy the lib directory to the target MicroPython device,
-      for instance using the file download funtion in Thonny
+    - copy the godafoss directory to the target MicroPython device,
+      for instance using the file upload function in Thonny
 
-To use the library in its source form
+**As sources**
+
+Finally, to use the library in its source form
 (for debugging or extending the library):
 
     - clone the
       Godafoss code repository http://www.github.com/wovo/godafoss-code
-    - copy the godafoss directory to the root
-      of the target MicroPython device
-      for instance using the file download funtion in Thonny
+    - copy the godafoss directory to the target MicroPython device
 
-For working on the library a fast target with ample RAM is recommended.
-My preferred target this is currently (2024) the Teensy 4.1
+For working on the library sources
+a fast target with ample RAM is recommended.
+My current (2024) preference is the Teensy 4.1
 (a pity its MicroPython port doesn't have the nexopixel driver built in).
 
 
+Blinky
+=============================================================================
 
-Use
----
-
-Once installed, Godafoss can be used by importing it.
+Once installed, godafoss can be used by importing it.
 For the blinky below,
-replace 42 with the number of the gpio pin that connects to
-the LED on your target (5 for a...)::
+replace 25 with the number or other identification of the gpio pin
+that connects to the LED on your target::
 
-    import godafoss as gf
-    gf.blink( 42 )
+    # PiPico has a led on GPIO 25
+    import godafoss as g$-$f
+    g$-$f.blink( 25 )
+
+Boards
+-----------------------------------------------------------------------------
+The library supports generic MicroPython,
+but it also has explicit support
+for the following boards and modules.
+
+$$insert_table( "boards", 3 )
+
+
+Displays
+-----------------------------------------------------------------------------
+The library provides drivers for various (LCD, OLED and E-ink) display
+controllers. These controllers often need parameters that
+depend on the particular display.
+For the following displays drivers are provided that
+are taylored with those parameters.
+
+$$insert_table( "displays", 4 )
 
 Abstract data types
--------------------
+-----------------------------------------------------------------------------
 
-The library uses abstractions for things like colors,
-relative amounts, temperatures and coordinates.
+The library uses abstractions for things like color, temperature,
+relative amount, and coordinates.
 These immutable abstract data classes are
 :class:`~godafoss.color`,
-:class:`~godafoss.fraction`,
 :class:`~godafoss.temperature`,
+:class:`~godafoss.fraction`,
 :class:`~godafoss.xy`, and
 :class:`~godafoss.xyz`.
 When appropriate, objects of these classes support arithmetic operations
 like addition, subtraction, multiplication and division.
 
+
 Pins
----------
+-----------------------------------------------------------------------------
 
 The library uses four types of pins: input, output, input_output,
 and open collector.
@@ -108,18 +157,18 @@ both read() and write() methods.
 An input_output pin also has methods to set the direction
 to input or output.
 
-+-------------------------------+----------+----------+-------------------------+
-| class                         | read()   | write()  | direction_set_input()   |
-|                               |          |          | direction_set_output()  |
-+-------------------------------+----------+----------+-------------------------+
-| :class:`~godafoss.pin_in`     |    x     |          |                         |
-+-------------------------------+----------+----------+-------------------------+
-| :class:`~godafoss.pin_out`    |          |    x     |                         |
-+-------------------------------+----------+----------+-------------------------+
-| :class:`~godafoss.pin_in_out` |    x     |    x     |     x                   |
-+-------------------------------+----------+----------+-------------------------+
-| :class:`~godafoss.pin_oc`     |    x     |    x     |                         |
-+-------------------------------+----------+----------+-------------------------+
++----------------------------+----------+----------+-------------------------+
+| class                      | read()   | write()  | direction_set_input()   |
+|                            |          |          | direction_set_output()  |
++----------------------------+----------+----------+-------------------------+
+| :class:`~pin_in`           |    x     |          |                         |
++----------------------------+----------+----------+-------------------------+
+| :class:`~pin_out`          |          |    x     |                         |
++----------------------------+----------+----------+-------------------------+
+| :class:`~pin_in_out`       |    x     |    x     |     x                   |
++----------------------------+----------+----------+-------------------------+
+| :class:`~pin_oc`           |    x     |    x     |                         |
++----------------------------+----------+----------+-------------------------+
 
 For an input_output pin, the appropriate direction_set method must be
 called before a read() or write() method is called.
@@ -127,22 +176,42 @@ For an open_collector pin a low (zero, False) value written to the pin
 is dominant, so a read() is meaningfull only after a high value (1, True) has
 been written to the pin.
 
-The preferred way to create a pin is to use one of the functions
-:func:`~godafoss.make_pin_in()`,
-:func:`~godafoss.make_pin_out()`,
-:func:`~godafoss.make_pin_in_out()` or
-:func:`~godafoss.make_pin_oc()`.
-These functions return a pin object of the requested type.
-These functions accept a board pin number or string, a pin object, or None.
+The pin class constructors accept either a board pin number or string,
+None, or a pin object that can be used in the requested way:
 
-When called with a hardware pin number or string,
-the function returns a pin object that uses that hardware pin.
-When called with a pin object, the function tries to create the requested
-pin object from its argument.
+    - a :class:`~godafoss.pin_in` can be used to construct a
+      :class:`~godafoss.pin_in` (of course)
+    - a :class:`~godafoss.pin_out` can be used to construct a
+      :class:`~godafoss.pin_out` (of course)
+    - a :class:`~godafoss.pin_in_out` can be used to construct
+      :class:`~godafoss.pin_in_out` (of course), but
+      also to construct a :class:`~godafoss.pin_in`,
+      a :class:`~godafoss.pin_out`,
+      or a :class:`~godafoss.pin_oc`
+    - a :class:`~godafoss.pin_oc` can be used to construct a
+      :class:`~godafoss.pin_oc` (of course), but
+      also to construct a :class:`~godafoss.pin_in`,
+      a :class:`~godafoss.pin_out`,
+      or a :class:`~godafoss.pin_in_out`
+      (but the as :class:`~godafoss.pin_in_out` or
+      :class:`~godafoss.pin_out` it will let the pin float instead
+      of driving it high).
+
+When initialized with an integer or string,
+the board-specific pin support built into micro-python
+is used to create the pin.
+In this case, the constructor will accept pullup an/or pulldown
+parameters can be set to True to activate the pullup or pulldown
+functionality of the pin.
+
 When called with None, a dummy object of the appropriate type is returned.
 
+Two pins that have a write() method can be added (+ operator) to create a
+$$ref( "pin_out" )
+that writes to both pins.
+
 Ports
-----------
+-----------------------------------------------------------------------------
 
 GPIO pins and ports (ports are ordered groups of pins)
 are subclasses of the pin superclasses
@@ -188,8 +257,9 @@ behaviour for of its read() and write() methods:
 when the original pin would read True, the inverted pin
 reads False, etc.
 
+
 Displays
---------
+-----------------------------------------------------------------------------
 
 frame?
 
@@ -207,8 +277,9 @@ differ in what can be drawn ate each location:
 
 Most displays are buffered
 
+
 Terminal
---------
+-----------------------------------------------------------------------------
 
 The
 :class:`~godafoss.terminal`
@@ -224,21 +295,22 @@ and a
 
 
 Graphics
---------
+-----------------------------------------------------------------------------
 
 
 image tool
 font tool
 
+
 Resource use
-------------
+-----------------------------------------------------------------------------
 
 On most MicroPython targets, RAM is a scarce.
 To make the most of the available RAM the library uses on-demand loading:
 most things within the library, and most attributes of its classes,
 are loaded only when used.
 This saves overall RAM, but at the cost of some overhead in loading time
-and RAM for administration of the things thate are actually loaded .
+and RAM for administration of the things that are actually loaded .
 
 The next table shows the total target RAM,
 the amount of RAM available for a MicroPython application,
@@ -288,8 +360,9 @@ This setup provides ample RAM,
 at the expense of (some) performance.
 Currently only up to 4 Mb of the RAM chip seems to be used.
 
+
 License
--------
+-----------------------------------------------------------------------------
 
 The library is covered by the MIT license,
 so you can do with it what you want,
@@ -302,8 +375,9 @@ The MIT copyright and license text is part of the library
 so you application automatically includes the text, satisfying
 the MIT license requirement to include the copyright and license text.
 
-Code & other conventions
-------------------------
+
+Code structure & conventions
+-----------------------------------------------------------------------------
 
 The library code conforms to PEP8 and pylint, except when I disagree
 with their rules. Check test/native/_tools.py for details.
@@ -336,6 +410,12 @@ For temperatures K, C an F are supported by the
 Whenever reasonably possible,
 the library avoids the use of floating point arithmetic.
 
+
 Library content
----------------
+-----------------------------------------------------------------------------
+
 """
+
+# must be present to make loading possible
+# must be after the text to prevent the text being sorted by sphinx
+intro = None

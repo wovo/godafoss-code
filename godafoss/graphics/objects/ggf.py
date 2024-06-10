@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -88,7 +88,7 @@ class ggf( gf.shape ):
         x = s[ 0 ] * 256 + s[ 1 ]
         s = f.read( 2 )
         y = s[ 0 ] * 256 + s[ 1 ]
-        self.size = xy( x, y )
+        self.size = gf.xy( x, y )
 
         if cached:
             self.data = f.read( x * y * 3 )
@@ -114,7 +114,10 @@ class ggf( gf.shape ):
                     if ( x % 8 ) == 0:
                         v = self.data[ i ]
                         i += 1
-                    c.write_pixel( offset + gf.xy( x, y ), v & 0x01 != 0x00 )
+                    c.write_pixel(
+                        offset + gf.xy( x, y ),
+                        v & 0x01 != 0x00
+                    )
                     v = v >> 1
 
                 elif self.depth == 1:
@@ -122,10 +125,13 @@ class ggf( gf.shape ):
                     r = (( d >> 5 ) & 0x07 ) << 5
                     g = (( d >> 2 ) & 0x07 ) << 5
                     b = (( d >> 0 ) & 0x03 ) << 6
-                    c.write_pixel( offset + gf.xy( x, y ), color( r, g, b ) )
+                    c.write_pixel(
+                        offset + gf.xy( x, y ),
+                        gf.color( r, g, b )
+                    )
 
                 else:
-                    p = color(
+                    p = gf.color(
                         self.data[ i ],
                         self.data[ i + 1 ],
                         self.data[ i + 2 ]
@@ -148,7 +154,10 @@ class ggf( gf.shape ):
                 if self.depth == 0:
                     if ( x % 8 ) == 0:
                         v = f.read( 1 )[ 0 ]
-                    c.write_pixel( offset + xy( x, y ), v & 0x01 != 0x00 )
+                    c.write_pixel(
+                        offset + gf.xy( x, y ),
+                        v & 0x01 != 0x00
+                    )
                     v = v >> 1
 
                 elif self.depth == 1:
@@ -156,16 +165,22 @@ class ggf( gf.shape ):
                     r = (( d >> 5 ) & 0x07 ) << 5
                     g = (( d >> 2 ) & 0x07 ) << 5
                     b = (( d >> 0 ) & 0x03 ) << 6
-                    c.write_pixel( offset + xy( x, y ), color( r, g, b ) )
+                    c.write_pixel(
+                        offset + gf.xy( x, y ),
+                        gf.color( r, g, b )
+                    )
 
                 else:
                     d = f.read( 3 )
-                    p = color(
+                    p = gf.color(
                         d[ 0 ],
                         d[ 1 ],
                         d[ 2 ]
                     )
-                    c.write_pixel( offset + xy( x, y ), p )
+                    c.write_pixel(
+                        offset + gf.xy( x, y ),
+                        p
+                    )
         f.close()
 
     # =======================================================================

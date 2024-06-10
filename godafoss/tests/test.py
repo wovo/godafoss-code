@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -72,7 +72,7 @@ def fixed_lines( file ):
         "# part of  : godafoss micropython library",
         "# url      : https://www.github.com/wovo/godafoss",
         "# author   : Wouter van Ooijen (wouter@voti.nl) 2024",
-        "# license  : MIT license, see license variable in the __init__.py",
+        "# license  : MIT license, see license attribute (from license.py)",
         "#",
         "# " + 75 * "=",
     ]
@@ -115,7 +115,7 @@ def check_one_source_file( path, file ):
         lines = source.readlines()
 
     fixed = fixed_lines( file )
-    if file == "__init__.py":
+    if file == "license.py":
         fixed[ 6 ] = \
             "# license  : MIT license, see license variable in this file"
 

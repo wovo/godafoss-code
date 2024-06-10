@@ -1,18 +1,16 @@
 # ===========================================================================
 #
-# file     : gf_neopixels.py
+# file     : neopixels.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
-# license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the neopixels classes.
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
 import godafoss as gf
+
+#$$document( 0 )
 
 
 # ===========================================================================
@@ -20,20 +18,16 @@ import godafoss as gf
 class neopixels( gf.canvas ):
     """
     neopixels common driver
-    
-    $macro_start neopixels
+
     :param n: (int)
         the number of pixels in the chain
-    
+
     :param background: (:class:`~godafoss.color`)
         the background color (default: black)
-        
+
     :param order: (str)
         the color order (default: RGB)    
-        
-    $macro_end    
-    $macro_insert neopixels
-    
+
     Neopixels are seperately controllable RGB LEDs,
     either as separate chip and LED, or as chip combined with an RGB LED.
     Neopixels can be connected into a chain, where only the first
@@ -84,9 +78,9 @@ class neopixels( gf.canvas ):
     ):
         gf.canvas.__init__(
             self,
-            size = xy( n, 1 ),
+            size = gf.xy( n, 1 ),
             is_color = True,
-            background = colors.black
+            background = gf.colors.black
         )
         
         order = order.upper()
@@ -120,59 +114,31 @@ class neopixels( gf.canvas ):
     def demo_color_wheel(
         self,
         color_list = (
-            colors.red,
-            colors.green,
-            colors.blue,
-            colors.white
+            gf.colors.red,
+            gf.colors.green,
+            gf.colors.blue,
+            gf.colors.white
         ),
         delay: int = 10_000,
         iterations = None,
         dim: int = 30
     ):
-        for _ in repeater( iterations ):
+        for _ in gf.repeater( iterations ):
             for c in ( color_list ):
                 self.clear()
                 for n in range( self.size.x + 1 ):
                     self.flush()
-                    sleep_us( delay )
+                    gf.sleep_us( delay )
                     self.write_pixel(
-                        xy( n, 0 ),
+                        gf.xy( n, 0 ),
                         c // dim
                     )  
                 for n in range( self.size.x + 1 ):
                     self.flush()
-                    sleep_us( delay )
+                    gf.sleep_us( delay )
                     self.write_pixel(
-                        xy( n, 0 ),
-                        colors.black
+                        gf.xy( n, 0 ),
+                        gf.colors.black
                     ) 
-    
-# ===========================================================================
-
-   
-class ws281x( neopixels ):
-    """
-    requires neopixel support in the target, Teensy 4.1 by default doesn't
-    """
-
-    def __init__( 
-        self, 
-        pin: int, 
-        n: int, 
-        background = colors.black, 
-        order: str = "RGB"
-    ):
-        import neopixel, machine
-        self._pixels = neopixel.NeoPixel(
-            machine.Pin( pin, machine.Pin.OUT ), n )
-        
-        neopixels.__init__( self, n, background, order )
-
-    # =======================================================================
-
-    def _flush_implementation( self ):
-        self._pixels.write()    
-
-    # =======================================================================
     
 # ===========================================================================

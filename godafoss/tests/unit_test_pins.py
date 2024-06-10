@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -25,12 +25,10 @@ def test_read( base, pin ):
         base.value = False
         assert pin.read() == False
         assert pin.inverted().read() == True
-        #assert ( - pin ).read() == True
 
         base.value = True
         assert pin.read() == True
         assert pin.inverted().read() == False
-        #assert ( - pin ).read() == False
 
 # ===========================================================================
 
@@ -40,10 +38,6 @@ def test_write( base, pin ):
 
         pin.inverted().write( False )
         assert base.value == True
-
-        #pin.write( False )
-        #( - pin ).write( False )
-        #assert base.value == True
 
         pin.write( 0 )
         assert base.value == False
@@ -75,9 +69,6 @@ def test_write_oc( base, proxy ):
     assert base.is_output == True
     assert base.value == False
 
-    #( - proxy ).write( 0 )
-    #assert base.is_output == False
-
     proxy.pulse( high_time = 1, low_time = 1 )
     gf.pulse( proxy, high_time = 1, low_time = 1 )
 
@@ -93,14 +84,13 @@ def test_direction( pin, proxy ):
 
 def unit_test_pin_dummy():
 
-    d = gf.make_pin_in_out( None )
+    d = gf.pin_in_out( None )
     assert d.as_pin_in_out() == d
 
     test_read( d, d )
     test_write( d, d )
     test_direction( d, d )
     test_direction( d, d.inverted() )
-    #test_direction( d, - d )
 
     di = d.as_pin_in()
     assert di.as_pin_in() == di
@@ -131,9 +121,11 @@ def unit_test_pin_dummy():
     test_read( d, io )
     test_write_oc( d, io )
 
-    a = gf.make_pin_in_out( -1 )
-    b = gf.pin_dummy()
+    a = gf.pin_in_out( None )
+    b = gf.pin_in_out( None )
+    assert a != b
     for both in [
+        sum( ( a, b ), a ),
         a + b,
         a.as_pin_out() + b,
         a + b.as_pin_out(),

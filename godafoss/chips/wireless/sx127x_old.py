@@ -4,11 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
-# license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the xpt2046 touch screen interface driver class.
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -90,7 +86,7 @@ MAX_PKT_LENGTH = 255
 
 __DEBUG__ = True
 
-class SX127x:
+class sx_127x:
 
     default_parameters = {
             'frequency': 868E6, 

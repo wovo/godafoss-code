@@ -4,13 +4,11 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
-# license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the generic color LCD driver.
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
+
+# $$document( 0 )
 
 from micropython import const
 import micropython
@@ -199,7 +197,7 @@ class lcd_base( gf.canvas, gf.lcd_spi, gf.lcd_reset_backlight_power ):
 
         lcd_reset_backlight_power.__init__( 
             self, 
-            reset = gf.make_pin_out( reset ).inverted(), 
+            reset = gf.pin_out( reset ).inverted(), 
             backlight = backlight, 
             power = power,
             

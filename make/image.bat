@@ -1,1 +1,1 @@
-python make/image.py %*
+python make/python/image.py %*

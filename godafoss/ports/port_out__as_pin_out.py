@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -19,7 +19,7 @@ class port_out__as_pin_out( gf.pin_out ):
         slave
     ) -> None:
         self._slave = slave
-        gf.pin_out.__init__( self )
+        gf.pin_out.__init__( self, self )
 
     # =======================================================================
 

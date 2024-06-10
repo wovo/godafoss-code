@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -19,7 +19,7 @@ class hd44780( gf.terminal ):
     
     This class implements an interface to an hd44780 character LCD.
     
-    .. figure::  ../images/hd44780-picture.png
+    $$insert_image( "hd44780-picture", 300 )
     
     The hd44780 is the standard chip for interfacing small dot-character
     LCD interfaces.
@@ -49,7 +49,7 @@ class hd44780( gf.terminal ):
     4 data lines, the R/S line (selects between command and data),
     and the E line (a strobe for the command).
     
-    .. figure::  ../images/hd44780-connection.png
+    $-$insert_image( "hd44780-connection", 300 )
     
     (Some larger displays use not one but two hd44780 chips.
     This driver is not compatible with such LCDs.)
@@ -57,7 +57,7 @@ class hd44780( gf.terminal ):
     Most hd44780 LCDs have a single row of connections,
     with the following pinout:
     
-    .. figure::  ../images/hd44780-pinout.jpg
+    $-$insert_image( "hd44780-pinout", 300 )
     
     But as always, check the datasheet (in this case of the LCD) to be sure!
     

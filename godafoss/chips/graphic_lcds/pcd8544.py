@@ -4,11 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
-# license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the pcd8544 LCD driver class.
+# license  : MIT license, see license attribute (from license.py).
 #
 # ===========================================================================
 
@@ -24,7 +20,7 @@ import godafoss as gf
 class pcd8544( 
     gf.canvas, 
     gf.lcd_reset_backlight_power, 
-    gf.lcd_spi 
+    gf.lcd_spi_cd 
 ):
     """
     pcd8544 SPI b/w lcd controller driver
@@ -109,7 +105,7 @@ class pcd8544(
             backlight = backlight, 
             power = power
         ) 
-        gf.lcd_spi.__init__( 
+        gf.lcd_spi_cd.__init__( 
             self, 
             spi = spi, 
             data_command = data_command, 

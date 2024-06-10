@@ -1,1 +1,6 @@
 # host dependencies for developing with MicroPython
+- python
+- docker
+- sphinx
+- pillow (PIL)
+- mpy_cross (is sepratate?)

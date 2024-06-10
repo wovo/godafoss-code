@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -33,7 +33,7 @@ def blink(
     high_time = high_time or period // 2
     low_time = low_time or high_time
 
-    p = gf.make_pin_out( pin )
+    p = gf.pin_out( pin )
     for iteration in gf.repeater( iterations ):
 
         if iteration == 0:

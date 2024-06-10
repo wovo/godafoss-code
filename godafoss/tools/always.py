@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in this file
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 #
@@ -14,10 +14,37 @@
 
 always = None
 
+
 # ===========================================================================
 
-version = "0.1"
+try:
+    _ = const( 42 )
+except:
+    def const( x: any ): return x
 
+# ===========================================================================
+
+class can_pin_in:
+    "acceptable as :class:`~godafoss.pin_in` constructor argument"
+    pass
+
+# ===========================================================================
+
+class can_pin_out:
+    "acceptable as :class:`~godafoss.pin_out` constructor argument"
+    pass
+
+# ===========================================================================
+
+class can_pin_in_out:
+    "acceptable as :class:`~godafoss.pin_in_out` constructor argument"
+    pass
+
+# ===========================================================================
+
+class can_pin_oc:
+    "acceptable as :class:`~godafoss.pin_oc` constructor argument"
+    pass
 
 # ===========================================================================
 
@@ -26,12 +53,20 @@ def all( first, *args ):
 
 # ===========================================================================
 
-def sign( x ):
-   return 1 if x > 0 else -1 if x < 0 else 0
+def sign( x: int | float ):
+    """
+    :param x: (int | float) the value to take the sign of
+    :result: (int) 1 -1, 0, or 1 for x < 0, x == 0, x > 0
+    """
+    return 1 if x > 0 else -1 if x < 0 else 0
 
 # ===========================================================================
 
 def less( x, n = 1 ):
+   """
+   :param x: (int | float) the value to take the sign of
+   :result: (int) 1 -1, 0, or 1 for x < 0, x == 0, x > 0
+   """
    return x - sign( x ) * n
 
 # ===========================================================================
@@ -40,6 +75,10 @@ def store_arguments(
     target,
     **kwargs
 ):
+    """
+    :param x: (int | float) the value to take the sign of
+    :result: (int) 1 -1, 0, or 1 for x < 0, x == 0, x > 0
+    """
     for name, value in kwargs.items():
         target.__setattr__( name, value )
 
@@ -86,21 +125,19 @@ def clamp(
     """
     x, clamped to the nearest value in the range [low..high]
 
-    :param x: any
+    :param x: (any)
         the value to clamp within the range [low..high]
 
-    :param low: any
+    :param low: (any)
         the lower bound of the clamp interval
 
-    :param high: any
+    :param high: (any)
         the higher bound of the clamp interval
 
-    :result: any
+    :result: (any)
         either x, or the nearest value in the range [low..high]
 
-    This function returns max( low, min( x, high ) ).
-
-    examples::
+    examples
     $insert_example( "test_tools.py", "clamp example", 1 )
     """
 

@@ -1,1 +1,1 @@
-python make/glyph.py %*
+python make/python/glyph.py %*

@@ -1,184 +1,34 @@
 # ===========================================================================
 #
-# file     : make_documentation.py
+# file     : prepare_documentation.py
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2022
 # license  : MIT license
 #
-# This script gathers and processes the source files into a single
+# ===========================================================================
+#
+# Gather and processes the source files into a single
 # __init__.py file, to be processed by sphinx, to generate the html 
 # and/or pdf version of the documentation.
-# This script should be run from the root of the repository.
+# Must be run from the root of the repository.
 #
-# For running the tests and generating the documentation the
-# dependencies are:
-#   - sphinx
-#   - rst2pdf 
-#
-# ToDo
-# - move html to docs
-# - have blink accept any as_pin_out pin, or make_pin_out that also accepts a number
-# - use same for ports
-# - images repository
-# - repository cleanup
-# - move sphinx shit to the build directory
-# - expand start page
-# - target pinouts
-# - now no white line in pdf
-# - ports doen't show the methods inhertited from _port
-# - port documentation
-# - pin documentation -> visible pin_base
-# - pdf image is too small, half the image for html, generate?
-# - weird pdf errors
-# - servo examples
-# - canvas examples
-# - separate module with the target boards and pinouts?
-# - hd44780 test
-# - hd44780 bliking demo (and more?)
-# - hd44780 pictures
-# - pcd8544 shows weird parameter types
-# - __init__ parameters are still shown in the class header
-# - no def for function definitions?
-# - skip init without args
-# https://stackoverflow.com/questions/5599254/how-to-use-sphinxs-autodoc-to-document-a-classs-init-self-method
-# - don't use init & repr for documentation?
+# https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 #
 # ===========================================================================
 
-import os, sys, shutil, glob
+import os, shutil, glob
 from PIL import Image
+
 import sys
-sys.path.append( "godafoss" )
+sys.path.append( "." )
+import godafoss
 
 
 # ===========================================================================
-
-def _inline_example( name: str, lines: str = None, image = True ):
-
-    """the docstring part for an example
-    """
-    
-    result = ""
-
-    if image:
-        result += f"""
-
-.. only:: html
-
-   .. image::  ../examples/images/{name}_html.png
-
-.. only:: pdf
-
-    .. image::  ../examples/images/{name}_pdf.png
-
-"""
-
-    if lines is not None:
-        result += f"""
-
-.. literalinclude:: ../examples/{name}.py
-    :lines: {lines}
-
-"""
-    return result
-    
-    
-# ===========================================================================
-
-def bar( s, n ):
-    return "" if n < 1 else s + bar( s, n - 1 )
-
-
-# ===========================================================================
-
-def insert_example( file, marker, spaces ):
-    f = open( "test/native/" + file, "r" )
-    result = []
-    gather = False
-    found = False
-    b = bar( " ", 4 * ( spaces + 1 ))
-    for line in f:
-        if gather:
-            if line.strip() == "":
-                result.append( "\n" )        
-                gather = False
-            elif line.strip().startswith( 'equal(' ) \
-             or line.strip().startswith( 'close(' ):
-                t = eval( line.replace( 'equal', '' ).\
-                    replace( 'close', '' ) )
-                s = b + t[ 0 ] + " -> " + t[ 1 ] + "\n"
-                s = s.replace( "\\", "\\\\" )
-                result.append( s )
-            else:
-                if line == "#\n":
-                    line = "\n"
-                result.append( b + line )            
-        if line.find( marker ) > -1:
-            gather = True
-            found = True
-            result.append( "\n" )
-    f.close()
-    if gather:
-        result.append( "\n" )   
-    if not found:
-        print( "example not found: %s %s" % ( file, marker ))
-    return result
-    
-def make_image( name, postfix, new_width ):
-    im = Image.open( "../images/images/" + name + ".png")
-    if new_width is None:
-        new_width = im.width 
-    new_size = ( new_width, ( im.height * new_width ) // im.width ) 
-    resized = im.resize( new_size )
-    resized.save( "tempdir/" + name + postfix + ".png" )
-    resized.close()
-    im.close()  
-    
-    
-# ===========================================================================
-
-def insert_image( 
-    name, 
-    level, 
-    html_width = None, 
-    pdf_width = None,
-    width = None
-    
-):
-    s = " " * 4 * level
-    result = \
-"""
- 
-@.. only:: html
-
-@   .. image::  ../../tempdir/%s_html.png
-@       $width
-
-@.. only:: pdf
-
-@    .. image::  ../../tempdir/%s_pdf.png
-@       $width
-
-"""
-    result = result.replace( "@", s ) % ( name, name )
-    result = result.replace( "$width",
-        "" if width is None else ":width: %d %% " % width )
-
-    if pdf_width is None:
-        if html_width is not None:
-            pdf_width = html_width * 2
-            
-    try:        
-        make_image( name, "_html", html_width )            ,
-        make_image( name, "_pdf", pdf_width )            ,
-    except FileNotFoundError:
-        print( "image not found: %s" % name )
-        return "missing image %s" % name       
-
-    return result
-   
-   
+#
+# find the sources files that must be processed
+#
 # ===========================================================================
 
 def find_source_files( path ):
@@ -199,6 +49,8 @@ def find_source_files( path ):
 def is_name_char( c ):
     return c.isalnum() or c == "_"
 
+# =========================================================================== 
+
 def dependencies( file ):
     result = []
     for line in open( file ).readlines():
@@ -214,10 +66,9 @@ def dependencies( file ):
                     or ( name == "clamp" )
                 ):
                 result.append( name )
-    print( file, result )
-    return result   
-
-
+    #print( file, result )
+    return result
+    
 # =========================================================================== 
 
 def dependency_file_name( file, file_list ):
@@ -234,48 +85,462 @@ def add_file( file, file_list, sorted_files ):
         for dep in dependencies( file ):
             full_name = dependency_file_name( dep, file_list )
             add_file( full_name, file_list, sorted_files )
-        sorted_files.append( file )            
-
+        sorted_files.append( file ) 
         
 # =========================================================================== 
 
 def sorted_source_files( path ):
     file_list = find_source_files( path )
-    sorted_files = [ "godafoss/tools/intro.py" ]
+    
+    sorted_files = [ 
+        "godafoss/docs/intro.py", 
+        "godafoss/tools/always.py", 
+        "godafoss/tools/enums.py", 
+]
+    
     for file in file_list:
-        add_file( file, file_list, sorted_files )
-    xsorted_files = [
-        file for file in sorted_files
-        if file in [
-            "godafoss/tools/intro.py"        ,
-            "godafoss/__init__.py",
-        ]
-    ]    
-    return sorted_files        
+        if (
+        not file in [
+            "godafoss/__init__mpy.py",
+        ] 
+        and not file.find( "__" ) > -1
+        ):
+            add_file( file, file_list, sorted_files )
+            
+    return sorted_files  
+    
+# =========================================================================== 
+#
+# report an error for the specified line 
+#
+# =========================================================================== 
+
+class report:
+    def __init__( 
+        self, 
+        file_name, 
+        nr, 
+        line 
+    ):
+        self.file_name = file_name
+        self.nr = nr
+        self.line = line        
         
+    def report(
+        self,
+        message 
+    ):    
+        print( f"[{self.file_name}:{self.nr}] {message}" )
+
+# ===========================================================================
+#
+# return an embedded command of the format $$<name>( <parameters> )
+#
+# ===========================================================================
+
+def embedded_command( 
+    reporter, 
+    line, 
+    commands = None 
+):
+    marker = line.find( "$$" )
+    if marker < 0:
+        return None, None
+        
+    interesting = line[ marker : ]    
+    
+    start = interesting.find( "(" )
+    if start < 0:
+        reporter.report( "missing (" )
+        return None, None
+
+    end = interesting.find( ")" )
+    if end < 0:
+        reporter.report( "missing )" )    
+        return None, None
+        
+    command = interesting[ 2 : start ]
+    if not ( ( command in commands ) or ( commands == None ) ):
+        return None, None    
+    
+    parameters = interesting[ start + 1 : end - 1 ]
+    return command, parameters    
+
+# ===========================================================================
+#
+# handle images
+#
+# ===========================================================================
+
+def make_image( name, file_name, new_width ):
+    im = Image.open( "../godafoss-pics/images/" + name + ".png")
+    if new_width is None:
+        new_width = im.width 
+    new_size = ( new_width, ( im.height * new_width ) // im.width ) 
+    resized = im.resize( new_size )
+    resized.save( f"tempdir/{file_name}.png" )
+    resized.close()
+    im.close()  
 
 # ===========================================================================
 
-def make_documentation():  
-    make_html = False
-    make_pdf = False
+"""
+.. list-table:: 
+    * - $$insert_image( "lilygo_ttgo_t_dongle_s3_python", 200, "lilygo_ttgo_t_dongle_s3", "#godafoss.board_lilygo_ttgo_t_dongle_s3" )    
+      - $$insert_image( "lilygo_ttgo_t_display", 200, "lilygo_ttgo_t_display", "#godafoss.board_lilygo_ttgo_t_display" )  
+      - $$insert_image( "lilygo_ttgo_t_display", 200, "lilygo_ttgo_t_display", "#godafoss.board_lilygo_ttgo_t_display" )  
+    * - $$insert_image( "lilygo_ttgo_t_dongle_s3_python", 200, "lilygo_ttgo_t_dongle_s3", "#godafoss.board_lilygo_ttgo_t_dongle_s3" )    
+      - $$insert_image( "lilygo_ttgo_t_display", 200, "lilygo_ttgo_t_display", "#godafoss.board_lilygo_ttgo_t_display" )   
+      - $$insert_image( "lilygo_ttgo_t_display", 200, "lilygo_ttgo_t_display", "#godafoss.board_lilygo_ttgo_t_display" ) 
+"""
 
-    for arg in sys.argv[ 1: ]:
-        if arg == "all":
-            make_pdf = True
-            make_html = True
-       
-        elif arg == "pdf":
-            make_pdf = True
-       
-        elif arg == "html":
-            make_html = True
-       
+tables = { 
+    "boards": [], 
+    "displays": [] 
+}
+
+def add_table( table, name, image ):
+    tables[ table ].append( [ name, image ] )
+
+def insert_table( table, columns ):
+    result = []
+    result.append( ".. list-table:: \n" )
+    pixels = [ None, 800, 400, 300, 200 ][ columns ]
+    n = 0
+    for name, image in tables[ table ]:
+    
+        n += 1
+        if ( columns == 1 ) or ( n % columns == 1 ):
+            s = "   * - "
         else:
-            raise Exception( "unknown argument '{arg}'", arg )
+            s = "     - "
+            
+        result.append( insert_image( 
+            s, 
+            image, 
+            pixels, 
+            name, 
+            f"#godafoss.{name}" 
+        ) )
         
+    while n % columns != 0:
+        n += 1
+        result.append( "\n" )
+        result.append( "     - \n" )
+        result.append( "\n" )
+        
+    return result        
+
+# ===========================================================================
+
+def insert_image0( 
+    prefix,
+    name, 
+    width,
+    caption = "",
+    link = None
+    
+):
+    file_name = f"{name}_{width}"
+    tabfix = " " * len( prefix )
+    if ( link is None ) and ( caption == "" ):
+        kind = "image"
+    else:
+        kind = "figure"
+    
+    if link == None:
+        link = ""
+    else:
+        if caption != "":
+            caption = f"`{caption} <{link}>`_"     
+        link = f":target: {link}"
+        
+    try:        
+        make_image( name, file_name, width )      
+
+    except FileNotFoundError:
+        print( "image not found: %s" % name )
+        return "missing image %s" % name          
+        
+    return \
+f"""
+
+{prefix}.. {kind}::  ../../tempdir/{file_name}.png
+{tabfix}    {link}
+
+{tabfix}    {caption}
+
+"""
+
+    return result
+    
+def insert_image( 
+    prefix,
+    name, 
+    width,
+    caption = "",
+    link = None
+    
+):
+    file_name = f"{name}_{width}"
+    tabfix = " " * len( prefix )
+    if ( link is None ) and ( caption == "" ):
+        kind = "image"
+    else:
+        kind = "figure"
+    
+    if link is not None:
+        if caption != "":
+            caption = f"`{caption} <{link}>`_"     
+        link = f":target: {link}"
+        
+    try:        
+        make_image( name, file_name, width )      
+
+    except FileNotFoundError:
+        print( "image not found: %s" % name )
+        return "missing image %s" % name          
+        
+    result = f"\n{prefix}.. {kind}::  ../../tempdir/{file_name}.png\n"
+    
+    if link is not None:
+        result += f"{tabfix}    {link}\n"
+        
+    if caption != "":
+        result += f"\n{tabfix}    {caption}\n"
+
+    return result + "\n"
+
+
+# ===========================================================================
+
+def see_also( 
+    prefix,
+    *args
+):
+    result = f"{prefix}see also: "
+    separator = ""
+    for arg in args:
+        result += ref( separator, arg )[:-1]
+        separator = ", "
+    return result + "\n"
+
+    
+# ===========================================================================
+
+def insert_example(
+    prefix,
+    file_name,
+    marker,
+    spaces
+):    
+    f = open( "godafoss/" + file_name, "r" )
+    result = []
+    gather = False
+    found = False
+    #b = bar( " ", 4 * ( spaces + 1 ))
+    for line in f:
+        if gather:
+            if line.strip() == "":
+                result.append( "\n" )        
+                gather = False
+            elif line.strip().startswith( 'assert ' ) \
+             or line.strip().startswith( 'close(' ):
+                t = eval( line.replace( 'assert ', ' ' ).\
+                    replace( 'close', '' ) )
+                s = prefix + t[ 0 ] + " -> " + t[ 1 ] + "\n"
+                s = s.replace( "\\", "\\\\" )
+                result.append( s + "\n" )
+            else:
+                if line == "#\n":
+                    line = "\n"
+                result.append( prefix + line + "\n" )            
+        if line.find( marker ) > -1:
+            gather = True
+            found = True
+            result.append( "\n" )
+    f.close()
+    if gather:
+        result.append( "\n" )   
+    if not found:
+        print( "example not found: %s %s" % ( file_name, marker ))
+    return result
+    
+    
+# ===========================================================================
+
+def ref( 
+    prefix,
+    arg,
+    name = None
+):
+    if arg[ 0 ] == "#":
+        arg = arg[1:]
+        if name is None:
+            name = arg
+        return f"{prefix}`{name} <#{arg}>`_\n"
+        
+    if name is not None:
+        return f"{prefix}`{name} <{arg}>`_\n"
+    
+    else:
+        return f"{prefix}:class:`~{arg}`\n"       
+    
+# ===========================================================================
+#
+# read file, handle
+#    identification of the file into the result
+#    $$document( yes / no )
+#    $$methods()
+#    $$image( <file>, 
+#
+# ===========================================================================
+
+def read_source_file( file_name ):
+    result = []
+    use = True
+    with open( file_name, "r" ) as file:
+    
+        result.append( f"\n\n#=> from {file_name}\n\n" )    
+    
+        for nr, line in enumerate( file.readlines() ):
+            reporter = report( file_name, nr + 1, line )
+            command, parameters = embedded_command( 
+                reporter, 
+                line, 
+                [ 
+                    "document", 
+                    "methods", 
+                    "insert_image", 
+                    "add_table", 
+                    "see_also",
+                    "ref",
+                    "insert_example"
+                ] 
+            )
+            
+            line = line.replace( "-gf.", "-g-f." ).replace( "gf.", "" ).replace( "-g-f.", "-gf." )
+            line = line.replace( "godafoss.", "" )
+            
+            if command == "document":
+                try:
+                    use = bool( eval( parameters ) )
+                except:
+                    reporter.report( "invalid parameter" )
+                    
+            elif not use:
+                pass
+                
+            elif command == "see_also":
+                try:
+                    prefix = line[ : line.find( "$$" ) ]
+                    result.append( eval( f"see_also( '{prefix}', {parameters} )" ) )
+                except Exception as error:
+                    reporter.report( error )                            
+                    
+            elif command == "ref":
+                try:
+                    prefix = line[ : line.find( "$$" ) ]
+                    result.append( eval( f"ref( '{prefix}', {parameters} )" ) )
+                except Exception as error:
+                    reporter.report( error )                            
+                    
+            elif command == "insert_example":
+                try:
+                    prefix = line[ : line.find( "$$" ) ]
+                    for x in eval( f"insert_example( '{prefix}', {parameters} )" ):
+                        result.append( x )
+                except Exception as error:
+                    reporter.report( error )                            
+                    
+            elif command == "insert_image":
+                try:
+                    prefix = line[ : line.find( "$$" ) ]
+                    result.append( eval( f"insert_image( '{prefix}', {parameters} )" ) )
+                except Exception as error:
+                    reporter.report( error )
+                    
+            elif command == "add_table":
+                s = f"add_table( {parameters} )"
+                try:
+                    exec( s )
+                except Exception as error:
+                    reporter.report( f"{error} in {s}" )
+                
+            elif command == "methods":    
+                line_prefix = line.find( "$$methods" ) * " "
+                result.append( line_prefix + '"""\n' )
+                name = file_name.replace( ".py", "__" )
+                item_prefix = os.path.basename( name )
+                for f in glob.glob( name + "*.py" ):
+                    for method_line in read_source_file( f ):
+                        # method_line = method_line.replace( file_name, "" )
+                        method_line = method_line.replace( item_prefix, "" )
+                        result.append( line_prefix + method_line )              
+                result.append( line_prefix + '"""\n' )
+            
+            elif line.strip() == "import godafoss as gf":
+                pass
+                
+            else:
+                line = line.replace( "$-$", "" )            
+                result.append( line )       
+                
+    return result                       
+
+# ===========================================================================
+#
+# processing on the full input
+#
+# ===========================================================================
+
+def process_lines( lines ):
+    result = []
+    for line in lines:
+    
+        reporter = report( "", 0, line )
+        command, parameters = embedded_command( 
+            reporter, 
+            line, 
+            [ 
+                "insert_table",  
+            ] 
+        )    
+
+        if command == "insert_table":
+            s = eval( f"insert_table( {parameters} )" )
+            for line in s:
+                result.append( line )
+                
+        else:
+            result.append( line )     
+        
+    return result
+
+# ===========================================================================
+
+def set_version():
+    file = "make/sphinx/conf.py"
+    with open( file ) as f:
+        lines = f.readlines()
+    with open( file, "w" ) as f:
+        for line in lines:
+            if line.startswith( "version =" ):
+                line = f"version = '{godafoss.version}'\n"
+            f.write( line )
+
+# ===========================================================================
+#
+# main
+#
+# ===========================================================================
+
+def prepare_documentation():
+
     if not os.path.isfile( "make/sphinx/prepare_documentation.py" ):
-        raise Exception( "must be run from the root" )    
+        raise Exception( "must be run from the root" )  
+        
+    set_version()        
         
     try:
         shutil.rmtree( "tempdir" )
@@ -284,152 +549,21 @@ def make_documentation():
     try:
         os.makedirs( "tempdir/godafoss" )
     except:
-        pass
+        pass        
         
-    lines = []
-    macros = {}
+    lines = []    
     for file_name in sorted_source_files( "godafoss" ):
-     if not file_name in []:
-        lines.append( f"\n#=> {file_name}\n\n" )
-        docstring = ""
-        gather = False
-        macro_name = None
-        nr = 0
-        leftover = ""
-        insert_at_blank = None
-        input = list( open( file_name, "r" ).readlines() )
-        while len( input ) > 0:
-            line = input[ 0 ]
-            input = input[ 1 : ]
-            nr += 1
-            #print( nr, line )
-            
-            if line.rstrip().endswith( "\\" ):
-                line = line.rstrip()
-                if leftover != "":
-                    line = line.lstrip()  
-                leftover += line[ : -2 ]
-                continue
-            if leftover != "":
-                line = line.lstrip()    
-            line = leftover + line
-            leftover = ""
+        lines += read_source_file( file_name )  
+
+    lines = process_lines( lines )    
         
-            if gather:
-                docstring += line
-                if False and line.replace( "\n", "" ).strip().endswith( '"""' ):
-                    #print( docstring )
-                    try:
-                        docstring = eval( f'f{docstring.strip()}' )
-                    except:
-                        print( "ERROR", docstring )    
-                    lines.append( start + docstring + '"""\n')
-                    docstring = ""
-                    gather = False
-                    
-            elif False and line.strip().startswith( '"""' ):
-                start = line
-                docstring += line
-                gather = True
-                
-            if line.startswith( "from godafoss." ):
-                pass
-                
-            elif ( macro_name is None ) and line.strip().startswith( '$macro_insert' ):
-                name = line.split( "$macro_insert" )[ 1 ].split( " " )[ 1 ].strip()
-                prefix = line.split( "$" )[ 0 ]
-                arguments = line.split( name )[ 1 ].strip().split( " " )
-                #print( name, line, arguments )
-                try:
-                    m = macros[ name ]
-                except:
-                    m = []
-                    print( "unknown macro %s:%d '%s'" % ( file_name, nr, name ) )                    
-                for x in reversed( m ):
-                    j = 0
-                    for r in arguments:
-                        j += 1
-                        x = x.replace( "$%d" % j, r )                   
-                    input = [ prefix + x ] + input                
-                    
-            elif ( macro_name is None ) and line.find( '$macro_insert' ) > 0:
-                split = line.strip().split( '$macro_insert', 1 )
-                name = split[ 1 ].strip().split( ' ', 1 )[ 0 ].strip( ")" )
-                s = ''
-                try:
-                    m = macros[ name ]
-                except:
-                    m = []
-                    print( "unknown macro %s:%d '%s'" % ( file_name, nr, name ) )
-                for x in m:
-                    s += x.replace( "\n", ' ' )
-                lines.append( 
-                    line.replace( name, '' ).replace( '$macro_insert', s )
-                )
-                
-            elif line.strip().startswith( '$macro_start' ):
-                macro_name = line.split( "$macro_start" )[ 1 ].strip()
-                macro_prefix = line.split( "$" )[ 0 ]
-                macro_lines = []
-                
-            elif line.strip().startswith( '$macro_end' ):    
-                macros[ macro_name ] = macro_lines
-                macro_name = None
-                
-            elif macro_name is not None:
-                macro_lines.append( line.replace( macro_prefix, "", 1 ) )
-
-            elif line.strip().startswith( '$' ):
-                line = line.replace( '$', '', 1 )
-                try:
-                    s = eval( line )
-                except Exception as error:
-                    print( "%s %s:%d" % ( error, file_name, nr ) )
-                    s = []
-                for line in s:
-                    lines.append( line )
-                
-            else:             
-                i = line.find( "#=> " )            
-                if i > -1:
-                    line = line.replace( "#=> ", "" )    
-                    insert_at_blank = i * " " + "    pass\n"    
-
-                if ( insert_at_blank is not None ) \
-                    and ( line.replace( "\n", "" ).strip() == "\n" ):
-                    # this never happens, 
-                    # but doesn't seem to be needed anyway
-                    lines.append( insert_at_blank )
-                    insert_at_blank = None
-
-                lines.append( line )
-       
     with open( "tempdir/godafoss/__init__.py", "w" ) as file:
         for line in lines:
-            file.write( line )  
-    
-    """
-    # add the files that must be mocked for running with normal python
-    for f in ( 
-        "machine.py", 
-        "framebuf.py", 
-        "micropython.py",  
-    ):
-        shutil.copy( "test/native/" + f, "tempdir/" + f )
-    for f in ( 
-        "gf_gc.py", 
-        "gf_time.py" 
-    ):
-        shutil.copy( "test/native/" + f, "tempdir/godafoss/" + f )
-    """    
-    
-    """
-    if make_html:
-        os.system( "sphinx-build -E -a -b html sphinx html" )
-        # os.system( "cmd -C make_html.bat" )
-       
-    if make_pdf:
-        os.system( "sphinx-build -t pdf -b pdf sphinx pdf" )
-    """
-    
-make_documentation()       
+            #print( line )
+            file.write( line )          
+
+# ===========================================================================
+
+prepare_documentation()
+
+# ===========================================================================

@@ -12,6 +12,7 @@ display = gf.st7789(
     backlight = edge.backlight,
     color_order = "BGR",
     mirror_x = True,
+    mirror_y = True,
 )
 
 display.demo()

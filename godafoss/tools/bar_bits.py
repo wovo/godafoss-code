@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -24,7 +24,7 @@ def bar_bits(
     of which the lowest n_ones bits
     are 1 (set), the other (higher) bits are 0 (clear).
 
-    examples::
+    examples
     $insert_example( "test_tools.py", "bar_bits example", 1 )
     """
 

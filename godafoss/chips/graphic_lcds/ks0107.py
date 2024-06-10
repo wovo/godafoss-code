@@ -4,13 +4,11 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
-from micropython import const
 import framebuf
-import machine
 
 import godafoss as gf
 
@@ -22,7 +20,9 @@ class ks0107(
     gf.lcd_reset_backlight_power, 
 ):
     """
-    ks0107 b/w lcd controller driver
+    dual ks0107 b/w lcd controller driver
+    
+    reset has yet to be rewritten
     
     $macro_insert lcd_reset_backlight_power_functionality    
     
@@ -43,18 +43,11 @@ class ks0107(
     :param background: bool
         background 'color', default (False) is off (white-ish)
     
-    This is a driver for a pcd8544 black & white lcd controller.
-    This chip was used with an 84 x 48 lcd in the once-popular 
-    Nokia model 5110  telephone, 
-    hence it is often called a (Nokia) 5110 lcd.
-    This type of lcd is cheap and available from lots of sources,
-    but the quality is often low (dead-on-arrival), 
-    and the pinout varies.
+    This is a driver for a 128 x 64 dual KS0107 black & white lcd.
+    The ones I know are for 5V, but the output from the MicroPython
+    chip to the LCD display can be 3.3V.
     
-    $insert_image( "pcf8544", 1, 200 )
-    
-    The pcb module shown has a backlight pin that must be connected
-    to the (3.3V) power via a suitable resistor (330 Ohm is OK).
+    $insert_image( "ks0107", 1, 200 )
     
     $macro_insert lcd_reset_backlight_power_functionality
     
@@ -70,7 +63,6 @@ class ks0107(
         cs2: [ int, pin_out, pin_in_out, pin_oc ],
         cd: [ int, pin_out, pin_in_out, pin_oc ],
         enable: [ int, pin_out, pin_in_out, pin_oc ],
-        size: gf.xy = gf.xy( 128, 64 ),
         wr: [ int, pin_out, pin_in_out, pin_oc ] = None,
         reset: [ None, int, pin_out, pin_in_out, pin_oc ] = None, 
         backlight: [ None, int, pin_out, pin_in_out, pin_oc ] = None, 
@@ -79,23 +71,23 @@ class ks0107(
     ) -> None:
         
         self.data = gf.make_port_out( data )
-        self.cs1 = gf.make_pin_out( cs1 )
-        self.cs2 = gf.make_pin_out( cs2 )
-        self.cd = gf.make_pin_out( cd )
-        self.enable = gf.make_pin_out( enable )
+        self.cs1 = gf.pin_out( cs1 )
+        self.cs2 = gf.pin_out( cs2 )
+        self.cd = gf.pin_out( cd )
+        self.enable = gf.pin_out( enable )
         self.enable.write( 1 )
-        self.wr = gf.make_pin_out( wr )
+        self.wr = gf.pin_out( wr )
         self.wr.write( 0 )
         
         gf.canvas.__init__( 
             self, 
-            size = size,
+            size = gf.xy( 128, 64 ),
             is_color = False,
             background = background
         )
         gf.lcd_reset_backlight_power.__init__( 
             self, 
-            reset = gf.make_pin_out( reset ).inverted(), 
+            reset = gf.pin_out( reset ).inverted(), 
             backlight = backlight, 
             power = power
         )
@@ -115,6 +107,9 @@ class ks0107(
     # =======================================================================
     
     def write_command( self, command ):
+        """
+        write the commadn to both chips
+        """
         self.cd.write( 0 )
         self.cs1.write( 0 )
         self.cs2.write( 0 )

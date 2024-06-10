@@ -1,2 +1,2 @@
-python make/build.py %*
+python make/python/build.py %*
  

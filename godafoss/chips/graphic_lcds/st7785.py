@@ -4,14 +4,11 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2023
-# license  : MIT license, see license variable in the __init__.py
-#
-# This file is part of the Godafoss perhiperal interface library.
-#
-# This file contains the st7735 LCD driver chip specific parts
-# for use by gf_lcd.
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
+
+# $$document( 0 )
 
 from micropython import const
 import framebuf

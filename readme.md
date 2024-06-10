@@ -1,24 +1,150 @@
 This is the source repository for 
-[godafoss](https://
-, a micro-python library.
+[godafoss](https://https://wovo.github.io/godafoss), 
+a micro-python library.
 
-package.json - can it find subdirectories at all?
-
-board: pycom lopy
-
-inherit:
-- store-args
-- no-additions
-
-https://snapcraft.io/install/micropython/raspbian
-https://gpiozero.readthedocs.io/en/latest/recipes.html
-https://sourceforge.net/projects/raspberry-gpio-python/
-
-gpio_oc is not implemented!
+To work on the sources, clone this repository 
+(wovo/godafoss-code, not wovo/godafoss)
+and copy the godafoss directory to your MicroPython device.
 
 TODO
 ====
 
+lcd_spi_cd.py should be spi_cd.py
+
+where does sleep() come from??
+
+xy - is an immutable...
+xyz.within
+
+for images:
+https://github.com/peterhinch/micropython-samples/blob/master/SERIALISATION.md
+
+mcp2515
+
+pass pullup parameters
+gpio plaatje
+$$ref() enzo moeten inline zijn, andere structuur (command class)
+pins: invert the description, refer to links
+- pin_in
+- pin_out
+- pin_in_out
+- pulse + plaatje
+- refer to $pulse (=function)
+
+http://www.jczn1688.com/zlxz
+https://registry.platformio.org/libraries/rzeldent/esp32_smartdisplay
+
+https://en.wikipedia.org/wiki/ESP32
+https://en.wikipedia.org/wiki/ESP8266
+https://forum.micropython.org/viewtopic.php?t=1747
+https://en.wikipedia.org/wiki/RP2040
+https://github.com/OkuboHeavyIndustries?tab=repositories - 128x64 grpahics
+
+If using Thonny IDE, in the Tools -> Manage Packages menu, search for "MicroPython_CAN_BUS_MCP2515" and install
+
+- lcd has too many parameters
+- sort lcds and boards alphabetically before inserting
+- mention using a powered hub for 4.1
+- make/build and make/load commands
+- iets weirds met links, maak er een $$class() van
+- generic_lcd afmaken
+- more lcds
+https://luma-lcd.readthedocs.io/en/latest/
+https://www.espruino.com/Graphics?print
+https://github.com/rm-hull/luma.lcd/blob/master/doc/python-usage.rst
+
+lcd240c320a
+oled128m64a
+epaper240m320a
+
+blinka: pin_in_out pin_in pin_oc spi i2c
+
+reversie game with touch
+
+https://abyz.me.uk/rpi/pigpio/python.html
+check https://github.com/russhughes/gc9a01py for fonts
+sx127x boost should not be a config param, because it is a HW feature
+
+rotate a sd1306 oled?
+
+air101 requires pull-ups?
+
+what to do with documentation of inherited interfaces?
+
+https://rpyc.readthedocs.io/en/latest/tutorial/tut3.html
+
+1 x beschrijving voor module display parameters
+maybe gf.horizontal gf.vertical etc. should be global? or east, south, west, north? "E" etc.
+
+class directions
+    north =
+    north_east =
+    east =
+    south_east = 
+    south =
+    south_west = 
+    west = 
+    north_west = 
+    
+ESP32 generic spiram on sunton_esp32_2432s028 has no effect at all
+on board with soldered spiram?
+(not even crash)
+
+build & load arguments separate, any order
+target, gf, nogf, spiram, octal, baudrate
+
+time the downloads
+pause at end of .bat is useless
+
+more timing data in demos
+
+https://www.openhasp.com/0.7.0/hardware/
+[MicroPython image](https://micropython.org/download/GENERIC_S3_SPIRAM_OCT/)
+
+general esp32 discussion, incl. spiram
+way to load the nogf images
+internal links to the boards
+noteer ook interne / externe antennes
+
+luatos c3 - air101 
+- cursor - abstraction for such a cursor? asbtract from orientation?
+- simple game?
+
+
+https://learn.adafruit.com/circuitpython-libraries-on-any-computer-with-mcp2221/windows
+
+import gc; gc.collect(); print( gc.mem_free() )
+
+- make/load doesn't work
+- make/load nogf
+
+- test teensy40, teensy41, rp2040w
+- test all downloads
+- include godafoss in image name?
+- godafoss/g -> godafoss/gf
+
+- help('modules')
+- import os; print( os.uname() )
+
+install godafoss as hosted library
+
+board: pycom lopy
+
+inherit:
+- no-additions
+
+https://github.com/lemariva/uPyLoRaWAN
+- https://github.com/lemariva/uPyLoRaWAN/tree/LoRaWAN
+
+https://snapcraft.io/install/micropython/raspbian
+https://gpiozero.readthedocs.io/en/latest/recipes.html
+https://sourceforge.net/projects/raspberry-gpio-python/
+https://github.com/peterhinch/micropython-touch/
+
+gpio_oc is not implemented!
+
+
+builds
 - now uses latest latest, should use latest stable, or maybe 1.22
 - build nogodafoss
 - support both for download
@@ -41,6 +167,10 @@ https://github.com/florisla/stm32loader
 https://www.arducam.com/ov2640/
 
 TODO
+- demos are not part of the download, and not part of the website
+- how usefull is the splitting for a frozen lib?
+- sources no longer fit on a pico :(
+
 - Traceback (most recent call last):
   File "<stdin>", line 2, in <module>
   File "godafoss/g/edge.py", line 52, in edge
@@ -54,16 +184,11 @@ TODO
 - esp32 build - works!
 - pico-w build
 - esp32c build
-- revisit loading, maybe don't search in .mpy mode
 - examples in documentation refer to the old test
-- sphinx take VERY long
 - sphinx warnings
 - avoid using micropython directly?
-- intro should be at the start of the html file
-- don't history on the html file & the images
 - complete introduction build & install
 - adc example & test to tests, change import path to root
-- always look for xxx.mpy in the root, only later search in all subdirs (no need to know suffix)
 - add RAM & startup metric to all demos
 - suppress base: object
 
@@ -129,24 +254,24 @@ rp2040.py  time 7843 ms, memory 47792 bytes (182528->134736)
 - re-check the ESP32 edge boards, system name is arbitrary
 - nano 33, nano 33 BLE
 - dedicated pico board for that parallel LCD and the bigger one
-- die dongle ESP32
 - e-ink displays
 - demos: show memory free
 - big allocation in lcd: gc first
 - tools for nano 33, teensy 4.0, teensy 4.1 build & download (in dockers)
 - iets Nx zo groot weergeven
 - een paar andere fonts
-- dedicated pico board for older 128x64 graphic displays
+- dedicated pico board for older 128x64 graphic displays - too many pins....
 - LCD overview
 - https://github.com/gitcnd/LCDWIKI_SPI/blob/master/LCDWIKI_SPI.cpp
 - terminal tool in python
 
 - teensy 4.0 can't store the full library (too many files?)
-- version for nanon BLE sense, but not for without it
-- esp8266 has no __file__, limits recursion, and is VERY slow, but blink & kitt work, reset doesn't work
+- version for nano BLE sense, but not for without ble-sense
+- esp8266 has no __file__
 - __file__ = "godafoss/__init__.py"
 
 - w600 loads OK but no REPL contact??
+https://sigmdel.ca/michel/ha/w600/second_look_w600_en.html
 
 - long lines must en in --+ or   |
 - lora library
@@ -170,6 +295,7 @@ rp2040.py  time 7843 ms, memory 47792 bytes (182528->134736)
 - how to check type hints??
 - pulse and blink is separate, log too (could also handle port etc.)
 - report -> benchmark -> tools
+- spi & i2c in godafoss, even if only a thin layer
 - why spi but no i2c??
 - native pin emulation
 - leach more tests and examples from old test/native

@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in this file
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 #
@@ -30,9 +30,14 @@
 #
 # ===========================================================================
 
-import os
+version = "0.2"
+
+
+# ===========================================================================
 
 try:
+    import os
+
     # present in standard Python, but not in MicroPython
     running_micropython = False
 
@@ -41,6 +46,9 @@ try:
     # Micropython built-in
     const = lambda x: x
     uint = None
+
+    import time
+    initial_time = time.monotonic_ns() // 1000
 
 except:
     # so this must be MicroPython
@@ -57,6 +65,9 @@ except:
 
     from micropython import const
 
+
+# ===========================================================================
+
 try:
     # the root of the godafoss library is where this file is
     _path = __file__[  : __file__.rfind( _separator ) ]
@@ -72,10 +83,15 @@ try:
 except:
     pass
 
+
+# ===========================================================================
+
 show_loading = False
 
+# $$document( 0 )
+from godafoss.tools.enums import *
 from godafoss.tools.always import *
-
+# $$document( 1 )
 
 # ===========================================================================
 #
@@ -158,7 +174,7 @@ def __getattr__( name ):
     try:
         # when frozen all files are lumped together in the godafoss directory
         # so no path is needed
-        exec( f"from godafoss.g.{name} import {name}" )
+        exec( f"from godafoss.gf.{name} import {name}" )
 
     except ImportError:
 
@@ -169,7 +185,7 @@ def __getattr__( name ):
         except:
 
             # mimic the original error
-            exec( f"from godafoss.g.{name} import {name}" )
+            exec( f"from godafoss.gf.{name} import {name}" )
 
         if found is None:
             raise AttributeError( f"unknown class '{name}'" ) from None
@@ -181,17 +197,26 @@ def __getattr__( name ):
 
 
 # ===========================================================================
-#
-# Inherit this class to get autoloading of class attributes from
-# <class_name>__<method_name>.<_suffix> files.
-# The attribute must be a function or class named
-# <class_name>__<method_name>.
-# The loaded attribute is added to the class, so on subsequent use
-# it will be used directly.
-#
-# ===========================================================================
 
 class autoloading:
+    """
+    load a class method (only) when it is called
+
+    :param class_type: (type)
+        the class that inherits from autoloading
+
+    Inheriting from this class puts a mechanism in place that when
+    an attribute is requested that is not present,
+    attempts to import that attribute from the
+    <class name>__<attribute name>.py file.
+
+    This is done to decrease startup time and lower RAM use.
+    A compareable mechanism is used for on-demand loading
+    of top-level elements of the library.
+
+    The loaded attribute is added to the class, so on subsequent use
+    it will be used directly.
+    """
 
     def __init__(
         self,
@@ -214,8 +239,8 @@ class autoloading:
         name = f"{self._class_name}__{obj}"
 
         try:
-            print( f"from godafoss.g.{name} import {name}" )
-            exec( f"from godafoss.g.{name} import {name}" )
+            print( f"from godafoss.gf.{name} import {name}" )
+            exec( f"from godafoss.gf.{name} import {name}" )
 
         except:
 

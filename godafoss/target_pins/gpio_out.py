@@ -4,16 +4,17 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
 import godafoss as gf
 
+# $$document( 0 )
 
 # ===========================================================================
 
-class gpio_out( gf.pin_out ):
+class gpio_out:
     """
     chip GPIO pin used as output
 
@@ -27,9 +28,14 @@ class gpio_out( gf.pin_out ):
         self,
         pin_nr: int
     ) -> None:
-        import machine
-        self._pin = machine.Pin( pin_nr, machine.Pin.OUT )
-        gf.pin_out.__init__( self )
+        self._pin_nr = pin_nr
+
+        if gf.running_micropython:
+            import machine
+            self._pin = machine.Pin( self._pin_nr, machine.Pin.OUT )
+
+        else:
+            gf.gpio_out_hosted( self )
 
     # =======================================================================
 
@@ -43,7 +49,9 @@ class gpio_out( gf.pin_out ):
         :param value: (bool)
             the new pin value (level)
         """
+
         self._pin.value( value )
+
 
     # =======================================================================
 

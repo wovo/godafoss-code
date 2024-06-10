@@ -1,2 +1,2 @@
-python make/load.py %*
+python make/python/load.py %*
  

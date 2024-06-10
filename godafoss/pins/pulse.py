@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -14,22 +14,33 @@ import godafoss as gf
 # ===========================================================================
 
 def pulse(
-    pin, # : int | "gf.pin_in_out" | "gf.pin_out" | "gf.pin_oc",
+    pin: "int | str | can_pin_out",
     high_time: int,
     low_time: int = 0
 ) -> None:
     """
-    high pulse on the pin
+    $$see_also( "pin_out" )
+    
+    make the pin high, wait for high_time,
+    make the pin low, and wait for low_time
+    
+    $$insert_image( "pulse", 300 )
 
-    The pin is used to make a pin_out.
+    :param pin: (int|str|can_pin_out) 
+        pin (converted to 
+        $$class( "pin_out" ) 
+        to output the pulse on
 
-    Make the pin high, wait for high_time (must be provided),
-    make the pin low, and wait for low_time (defaults to zero).
+    :param high_time: (int) 
+        duration of the high part of the pulse
 
-    Times are in us (microseconds).
+    :param low_time: (int) 
+        duration of the low part of the pulse (defaults to 0)
+
+    The times are in us (microseconds).
     """
 
-    pin = gf.make_pin_out( pin )
+    pin = gf.pin_out( pin )
 
     pin.write( True )
     if high_time != 0:

@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -20,7 +20,7 @@ class rectangle( gf.shape ):
     :param span: (:class:`godafoss.xy`)
         the far end of the rectangle, as offset from the start
 
-    $insert_image( "rectangles", 1, 300 )
+    $$insert_image( "rectangles", 300 )
 
     Without any offset, a rectangle starts at the origin
     (xy(0,0), the top-left pixel of the sheet).
@@ -44,7 +44,7 @@ class rectangle( gf.shape ):
         ink: [ bool, gf.color ] = True
     ):
         """
-        write the line to the sheet
+        write the rectangle to the sheet
 
         $macro_insert shape_write
         """

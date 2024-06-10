@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -36,7 +36,7 @@ def int_from_bytes(
     not implemented fully and correctly in MicroPython.
     Hence this alternative.
 
-    examples::
+    examples
     $insert_example( "test_tools.py", "int_from_bytes example", 1 )
     """
 

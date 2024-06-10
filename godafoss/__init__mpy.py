@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in this file
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 #
@@ -30,7 +30,7 @@ from micropython import const
 
 show_loading = False
 
-from godafoss.g.always import *
+from godafoss.gf.always import *
 
 # ===========================================================================
 
@@ -48,7 +48,7 @@ def __getattr__( name ):
     if show_loading:
         print( f"load element {name}" )
 
-    exec( f"from godafoss.g.{name} import {name}" )
+    exec( f"from godafoss.gf.{name} import {name}" )
     
     _loaded_attributes[ name ] = f = eval( name )
       
@@ -79,7 +79,7 @@ class autoloading:
         
         name = f"{self._class_name}__{obj}"
             
-        exec( f"from godafoss.g.{name} import {name}" )
+        exec( f"from godafoss.gf.{name} import {name}" )
                    
         func = constructor = eval( f"{name}" )
 

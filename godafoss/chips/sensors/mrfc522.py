@@ -1,3 +1,5 @@
+# $$document( 0 )
+
 from godafoss.gf_tools import *
 from godafoss.gf_make_pins import *
 

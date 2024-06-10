@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -23,15 +23,15 @@ class make_port_out( gf.port_out ):
         *args
     ) -> None:
         # create the list of the pins
-        try:
+        #try:
             self._pins = [
-                gf.make_pin_out( pin )
+                gf.pin_out( pin )
                     for pin in gf.make_tuple( *args )
             ]
-        except AttributeError:
-            raise AttributeError from None
+        #except AttributeError:
+        #    raise AttributeError from None
 
-        gf.port_out.__init__( self, len( self._pins  ) )
+            gf.port_out.__init__( self, len( self._pins  ) )
 
     # =======================================================================
 

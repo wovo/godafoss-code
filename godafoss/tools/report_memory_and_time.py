@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -18,14 +18,14 @@ def report_memory_and_time():
     report memory and time used since godafoss loading started
     """
 
-    ms = ( gf.ticks_us() - gf.initial_time ) // 1000
+    ms = ( gf.time_us() - gf.initial_time ) // 1000
 
     try:
         import gc
         gc.collect()
         free = gc.mem_free()
         b = gf.initial_free - free
-        s = ", memory {b} bytes ({gf.initial_free}->{free})"
+        s = f", memory {b} bytes ({gf.initial_free}->{free})"
     except:
         s = ""
 

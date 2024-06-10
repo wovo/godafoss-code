@@ -4,9 +4,11 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
+
+# $$document( 0 )
 
 from micropython import const
 import framebuf
@@ -196,7 +198,7 @@ class glcd(
 
         gf.lcd_reset_backlight_power.__init__( 
             self, 
-            reset = gf.make_pin_out( reset ).inverted(), 
+            reset = gf.pin_out( reset ).inverted(), 
             backlight = backlight, 
             power = power,
             

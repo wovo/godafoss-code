@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -42,7 +42,7 @@ class fraction( gf.immutable ):
 
     $macro_insert immutable
 
-    examples::
+    examples
     $insert_example( "test_fraction.py", "fraction examples", 1 )
     """
 
@@ -83,7 +83,7 @@ class fraction( gf.immutable ):
         When those parameters are integers, the result will be an integer.
         When one or both are floats, the result is a float.
 
-        examples::
+        examples
         $insert_example( "test_fraction.py", "fraction scaled examples", 2 )
         """
 
@@ -102,7 +102,7 @@ class fraction( gf.immutable ):
         The inverted (negative) of a fraction is its complement.
         For instance, the complement of 3-out-of-10 is 7-out-of-10.
 
-        examples::
+        examples
         $insert_example( "test_fraction.py", "fraction invert examples", 2 )
         """
 

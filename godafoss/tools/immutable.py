@@ -4,13 +4,13 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
 class immutable:
     """
-    make an object immutable
+    immutable object
 
     Python names are references, and class objects are mutable,
     so a class member variable can inadvertently be modified.
@@ -26,11 +26,7 @@ class immutable:
     and calls immutable._init__( self ) when all its members
     have been initialized.
 
-    $macro_start immutable
-    Values (objects) of this class are immutable.
-    $macro_end
-
-    usage example::
+    usage example
     $insert_example( "test_tools.py", "immutable example", 1 )
     """
 

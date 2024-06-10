@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 #
@@ -31,35 +31,36 @@ silent = False
 def edge():
     try:
         uname = os.uname()
+        
+        if uname[ 0 ] == "rp2":
+            result = gf._edge_rp2()
+            
+        elif uname[ 0 ] == "esp32":
+        
+            if uname[ 4 ] == "ESP32C3 module with ESP32C3":
+                result = gf._edge_esp32c3()
+            
+            elif uname[ 4 ] == "LOLIN_S2_PICO with ESP32-S2FN4R2":
+                result = gf._edge_esp32_lolin_c2_pico()
+                
+            elif uname[ 4 ] == "LOLIN_C3_MINI with ESP32-C3FH4":
+                result = gf._edge_esp32_lolin_c3_mini()
+                
+            else:
+                result = gf._edge_esp32()
+                
+        elif uname[ 0 ] == "esp8266":      
+            result = gf._edge_esp8266()                 
+    
+        elif uname[ 0 ] == "mimxrt":
+            result = gf._edge_mimxrt()
+            
+        else:
+            print( "unknow uname:", uname[ 0 ] )
+        
     except:
         result = gf._edge_native()
-        
-    if uname[ 0 ] == "rp2":
-        result = gf._edge_rp2()
-            
-    elif uname[ 0 ] == "esp32":
-        
-        if uname[ 4 ] == "ESP32C3 module with ESP32C3":
-            result = gf._edge_esp32c3()
-            
-        elif uname[ 4 ] == "LOLIN_S2_PICO with ESP32-S2FN4R2":
-            result = gf._edge_esp32_lolin_c2_pico()
-                
-        elif uname[ 4 ] == "LOLIN_C3_MINI with ESP32-C3FH4":
-            result = gf._edge_esp32_lolin_c3_mini()
-                
-        else:
-            result = gf._edge_esp32()
-                
-    elif uname[ 0 ] == "esp8266":      
-        result = gf._edge_esp8266()                 
-    
-    elif uname[ 0 ] == "mimxrt":
-        result = gf._edge_mimxrt()
-            
-    else:
-        print( "unknow uname:", uname[ 0 ] )
-            
+         
     if not silent:
         print( "edge board is", result.system )
         print( "edge pins are", result.pins )       

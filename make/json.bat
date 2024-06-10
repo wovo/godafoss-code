@@ -1,1 +1,1 @@
-python make/json.py
+python make/python/json.py

@@ -1,2 +1,2 @@
-python make/clean.py
+python make/python/clean.py
  

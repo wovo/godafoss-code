@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -48,7 +48,7 @@ class color( gf.immutable ):
 
     $macro_insert immutable
 
-    examples::
+    examples
     $insert_example( "test_color.py", "color examples", 1 )
     """
 

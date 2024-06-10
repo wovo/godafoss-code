@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath( 'mocks' ) )
 # -- Project information -----------------------------------------------------
 
 project = 'godafoss'
-version = '0.1'
-release = '0.1'
+version = '0.2'
+release = version
 copyright = '2024, Wouter van Ooijen'
 author = 'Wouter van Ooijen'
 

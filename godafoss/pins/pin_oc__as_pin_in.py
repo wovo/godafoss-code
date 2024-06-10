@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -13,21 +13,30 @@ import godafoss as gf
 
 # ===========================================================================
 
-class pin_oc__as_pin_in( gf.pin_in ):
+def pin_oc__as_pin_in( self ):
+    "input vesion of the pin"
 
     # =======================================================================
 
-    def __init__( self, pin ):
-        gf.pin_in.__init__( self )
-        self._pin = pin
-        self._pin.write( 1 )
+    class _as_pin_in( gf.pin_in ):
+
+        # ===================================================================
+
+        def __init__( self, pin ):
+            gf.pin_in.__init__( self, self )
+            self._pin = pin
+            self._pin.write( 1 )
+
+        # ===================================================================
+
+        def read( self ):
+            return self._pin.read()
+
+        # ===================================================================
 
     # =======================================================================
 
-    def read( self ):
-        return self._pin.read()
-
-    # =======================================================================
+    return _as_pin_in( self )
 
 # ===========================================================================
 

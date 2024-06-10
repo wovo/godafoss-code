@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -20,7 +20,7 @@ class line( gf.shape ):
     :param span: (:class:`godafoss.xy`)
         the far end of the line, as offset from the start
 
-    $insert_image( "lines", 1, 300 )
+    $$insert_image( "lines", 300 )
 
     Without any offset, a line starts at the origin
     (xy(0,0), the top-left pixel of the sheet).

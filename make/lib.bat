@@ -1,1 +1,1 @@
-python make/lib.py %*
+python make/python/lib.py %*

@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -127,10 +127,10 @@ def unit_test_port_dummy():
 
 def unit_test_port_pins():
     pins = [
-        gf.make_pin_in_out( None ),
-        gf.make_pin_in_out( None ),
-        gf.make_pin_in_out( None ),
-        gf.make_pin_in_out( None ),
+        gf.pin_in_out( None ),
+        gf.pin_in_out( None ),
+        gf.pin_in_out( None ),
+        gf.pin_in_out( None ),
     ]
     port = gf.make_port_in_out( pins )
     port.write( 0x03 )

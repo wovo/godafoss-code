@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -13,58 +13,84 @@ import godafoss as gf
 
 # ===========================================================================
 
-class pin_out( gf.autoloading ):
+class pin_out(
+    gf.autoloading,
+    gf.can_pin_out
+):
     """
-    digital output pin
+    $$see_also( "#pins", "pin_in", "pin_out", "pin_oc", "port_out" )
 
-    A pin_out is a digital output pin: an object to which you can
-    write() a digital level.
+    digital output pin:
+    an object to which you can write() a digital level.
 
-    A pin can be inverted (minus operator or invert() function)
-    to create a pin that will write the inverted level.
+    :param pin: (int | str | gf.can_pin_out | None )
+        Either a (int or str) gpio pin indentification,
+        or a pin that has an as_pin_in_out method()
+        (
+        $$ref( "pin_out" )
+        ,
+        $$ref( "pin_in_out" )
+        or
+        $$ref( "pin_oc" )
+        ),
+        or None (return a dummy pin).
 
-    Output pins can be added together or to a port_out to create
-    a (larger) port_out.
+    Two pins that each have an as_pin_out() method can be added
+    (+ operator) to yield a
+    $$ref( "port_in_out" )
+    that writes to both pins.
 
-    The as_output() function returns the pin itself.
-
-    The demo() of an output calls the global demo() function.
+    $$methods()
     """
 
     # =======================================================================
 
-    def __init__( self ):
+    def __init__(
+        self,
+        pin: "int | str | None | gf.can_pin_out"
+    ):
+
         gf.autoloading.__init__( self, pin_out )
 
+        if pin is not None:
+
+            try:
+                self.worker = pin.as_pin_out()
+
+            except:
+                self.pin_nr = pin
+                self.worker = gf.gpio_out( self.pin_nr )
+
+            # to speed things up: use the workers method directly
+            self.write = self.worker.write
+
     # =======================================================================
 
-    #def inverted( self ) -> "_pin_out_inverted":
-    #    return _gf._pin_out_inverted( self )
+    def write(
+        self,
+        value: bool
+    ) -> None:
+        """
+        set the pin output level
 
-    # =======================================================================
+        :param value: (bool)
+            the level to output to the pin
+        """
 
-    #def __neg__( self ) -> "pin_out":
-    #    return _gf._pin_out_inverted( self )
+        self.value = bool( value )
 
     # =======================================================================
 
     def as_pin_out( self ) -> "pin_out":
+        "the pin itself"
+
         return self
 
     # =======================================================================
 
     def __add__( self, other ) -> "pin_out":
+
          return gf.pin_out_from_two_pins( self, other )
-
-    # =======================================================================
-
-    #def pulse( self, *args, **kwargs ) -> None:
-    #    _gf.pulse( self, *args, **kwargs )
-
-    # =======================================================================
-
-    #def demo( self, *args, **kwargs ):
-    #    _gf.blink( self, *args, **kwargs )
 
     # =======================================================================
 

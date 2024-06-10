@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -15,7 +15,7 @@ import godafoss as gf
 
 class xy( gf.immutable ):
     """
-    xy coordinate pair or 2d vector
+    immutable xy coordinate pair or 2d vector
 
     :param x: int
         x value
@@ -34,10 +34,8 @@ class xy( gf.immutable ):
     multiplication (by an integer), integer division (by an integer),
     and taking the string representation.
 
-    $macro_insert immutable
-
-    examples::
-    $insert_example( "test_xy.py", "xy examples", 1 )
+    examples
+    insert_example( "tests/unit_test_xy.py", "xy examples", 1 )
     """
 
     # =======================================================================
@@ -66,6 +64,9 @@ class xy( gf.immutable ):
     def around(
         self
     ) -> "xy":
+        """
+        generate the 8 locations around the xy value
+        """
         for dy in range( -1, 0, +1 ):
             for dx in range( -1, 0, +1 ):
                 if ( dx != 0 ) or ( dy != 0 ):
@@ -77,6 +78,12 @@ class xy( gf.immutable ):
         self,
         boundary: "xy"
     ) -> "xy":
+        """
+        whether the xy value is within the boundary
+        
+        The xy value is within the boundary if both
+        ( 0 <= x < boundary.x ) and ( 0 <= y < boundary.y ).
+        """
         return (
             ( self.x >= 0 )
             and ( self.y >= 0 )

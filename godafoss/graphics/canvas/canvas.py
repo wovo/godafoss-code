@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -220,7 +220,7 @@ class canvas( gf.autoloading ):
         """
         write a :class:`~godafoss.shape` or string
 
-        When the thing is a :class:`~godafoss.shape the write()
+        When the thing is a :class:`~godafoss.shape` the write()
         method calls the write() method of the thing is called.
 
         When the thing is a string, a :class:`~godafoss.text`

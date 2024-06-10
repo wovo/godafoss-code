@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -13,46 +13,70 @@ import godafoss as gf
 
 # ===========================================================================
 
-class pin_in( gf.autoloading ):
+class pin_in(
+    gf.autoloading,
+    gf.can_pin_in
+):
     """
-    digital input pin
+    $$see_also( "#pins", "pin_in", "pin_out", "pin_oc", "port_in" )
 
-    A pin_in is a digital input pin: an object from which you can
+    digital input pin: an object from which you can
     read() a bool value.
 
-    A pin can be negated (minus operator or inverted() function)
-    to create a pin that will read the inverted level relative to the
-    original pin.
+    :param pin: (int | str | gf.can_pin_in | None )
+        Either a (int or str) gpio pin indentification,
+        or a pin that has an as_pin_in method()
+        (
+        $$ref( "pin_out" )
+        ,
+        $$ref( "pin_in_out" )
+        or
+        $$ref( "pin_oc" )
+        ),
+        or None (return a dummy pin).
 
-    The as_pin_in() function returns the pin itself.
-
-    The demo() function reads and prints the pin value.
+    $$methods()
     """
 
     # =======================================================================
 
-    def __init__( self ):
+    def __init__(
+        self,
+        pin: "int | str | None | gf.can_pin_in"
+    ):
+
         gf.autoloading.__init__( self, pin_in )
 
+        if pin is not None:
+
+            try:
+                self.worker = pin.as_pin_in()
+
+            except:
+                self.pin_nr = pin
+                self.worker = gf.gpio_out( self.pin_nr )
+
+            # to speed things up: use the workers method directly
+            self.read = self.worker.read
+
     # =======================================================================
 
-    #def inverted( self ) -> "pin_in":
-    #    return gf._pin_in_inverted( self )
+    def read( self ) -> bool:
+        """
+        return the level on the pin
 
-    # =======================================================================
+        :result: (bool)
+            the level read from the pin
+        """
 
-    #def __neg__( self ) -> "pin_in":
-    #    return gf._pin_in_inverted( self )
+        return self.value
 
     # =======================================================================
 
     def as_pin_in( self ) -> "pin_in":
+        "the pin itself"
+
         return self
-
-    # =======================================================================
-
-    #def demo( self, *args, **kwargs ) -> None:
-    #    gf._pin_in_demo( self, *args, **kwargs )
 
     # =======================================================================
 

@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -16,7 +16,7 @@ import godafoss as gf
 
 class ssd1306_spi(
     gf.lcd_reset_backlight_power, 
-    gf.lcd_spi,
+    gf.lcd_spi_cd,
     gf.ssd1306_base
 ):
     """
@@ -66,7 +66,7 @@ class ssd1306_spi(
             backlight = None,
             power = None
         ) 
-        gf.lcd_spi.__init__(
+        gf.lcd_spi_cd.__init__(
             self,
             spi = spi,
             data_command = data_command,

@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -13,19 +13,28 @@ import godafoss as gf
 
 # ===========================================================================
 
-class pin_out__inverted( gf.pin_out ):
+def pin_out__inverted( self ) -> "gf.pin_out":
+    "inverse of the pin: writes the inverted level"
 
     # =======================================================================
 
-    def __init__( self, pin ):
-        gf.pin_out.__init__( self )
-        self._pin = pin.as_pin_out()
+    class _inverted( gf.pin_out ):
 
     # =======================================================================
 
-    def write( self, value ):
-        self._pin.write( not value )
+        def __init__( self, pin ):
+            gf.pin_out.__init__( self, self )
+            self._pin = pin.as_pin_out()
+
+        # ===================================================================
+
+        def write( self, value ):
+            self._pin.write( not value )
+
+        # ===================================================================
 
     # =======================================================================
+
+    return _inverted( self )
 
 # ===========================================================================

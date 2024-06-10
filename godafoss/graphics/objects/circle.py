@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license variable in the __init__.py
+# license  : MIT license, see license attribute (from license.py)
 #
 # ===========================================================================
 
@@ -23,7 +23,7 @@ class circle( gf.shape ):
     :param fill: (bool)
         whether the circle is outline (False, default) or filled (True)
 
-    $insert_image( "circles", 1, 300 )
+    $$insert_image( "circles", 300 )
 
     Without any offset, a circle has its centre at the origin
     (xy(0,0), the top-left pixel of the sheet).
