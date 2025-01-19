@@ -124,7 +124,7 @@ class edge(
             
         if pi:
             self.system = "Raspberry Pi native pins"
-            self.pins = ( 36, 35, 37, 34, 3, 4, 12, 17 )
+            self.pins = ( 11, 10, 9, 8, 4, 18, 3, 2 )
             gf.port_in_out.__init__( self, self.pins )
             return
 

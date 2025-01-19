@@ -1290,9 +1290,9 @@ class _gpio_in_out( pin_in_out ):
             
             if direction:
                 # pull-up?
-                GPIO.setup( self.pin_nr, GPIO.IN )
+                GPIO.setup( self._pin_nr, GPIO.IN )
             else:    
-                GPIO.setup( self.pin_nr, GPIO.OUT )
+                GPIO.setup( self._pin_nr, GPIO.OUT )
 
     # =======================================================================
 
