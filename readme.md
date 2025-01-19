@@ -9,6 +9,16 @@ and copy the godafoss directory to your MicroPython device.
 TODO
 ====
 
+- cleanup files before ports.py
+
+- avoid lambda and local classes because they are created in RAM?
+- subrange of ports?
+
+- repeater, pulse etc. should use await() which can take a moment or a duration
+- deprecate esp8266
+- write to 2 ports
+- blink & pulse on port
+
 lcd_spi_cd.py should be spi_cd.py
 
 where does sleep() come from??
@@ -167,9 +177,6 @@ https://github.com/florisla/stm32loader
 https://www.arducam.com/ov2640/
 
 TODO
-- demos are not part of the download, and not part of the website
-- how usefull is the splitting for a frozen lib?
-- sources no longer fit on a pico :(
 
 - Traceback (most recent call last):
   File "<stdin>", line 2, in <module>

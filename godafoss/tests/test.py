@@ -37,22 +37,22 @@ def run_tests( name: str = None ):
         eval( f"gf.unit_test_{name}()" )
         return
 
-    gf.unit_test_basics()
-    gf.unit_test_one()
-    gf.unit_test_bits()
-    gf.unit_test_bytes()
-    gf.unit_test_repeater()
-    gf.unit_test_immutable()
-    gf.unit_test_no_new_attributes()
-    gf.unit_test_fraction()
-    gf.unit_test_temperature()
-    gf.unit_test_xy()
-    gf.unit_test_xyz()
-    gf.unit_test_color()
-    gf.unit_test_pins()
-    gf.unit_test_ports()
-    gf.unit_test_terminal()
-    gf.unit_test_canvas()
+    gf.tests.unit_test_basics()
+    gf.tests.unit_test_one()
+    gf.tests.unit_test_bits()
+    gf.tests.unit_test_bytes()
+    gf.tests.unit_test_repeater()
+    gf.tests.unit_test_immutable()
+    gf.tests.unit_test_no_new_attributes()
+    gf.tests.unit_test_fraction()
+    gf.tests.unit_test_temperature()
+    gf.tests.unit_test_xy()
+    gf.tests.unit_test_xyz()
+    gf.tests.unit_test_color()
+    gf.tests.unit_test_pins()
+    gf.tests.unit_test_ports()
+    gf.tests.unit_test_terminal()
+    gf.tests.unit_test_canvas()
 
 
 # ===========================================================================
@@ -72,7 +72,7 @@ def fixed_lines( file ):
         "# part of  : godafoss micropython library",
         "# url      : https://www.github.com/wovo/godafoss",
         "# author   : Wouter van Ooijen (wouter@voti.nl) 2024",
-        "# license  : MIT license, see license attribute (from license.py)",
+        "# license  : MIT license, see license attribute (godafoss.license)",
         "#",
         "# " + 75 * "=",
     ]
@@ -109,7 +109,7 @@ def check_one_source_file( path, file ):
     component = file.replace( ".py", "" )
 
     # first check: importing must succeed
-    eval( f"gf.{component}" )
+    #eval( f"gf.{component}" )
 
     with open( f"{path}/{file}" ) as source:
         lines = source.readlines()

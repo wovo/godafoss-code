@@ -49,36 +49,34 @@ def test_write( base, pin ):
         assert base.value == True
 
         pin.pulse( high_time = 1, low_time = 1 )
-        gf.pulse( pin, high_time = 1, low_time = 1 )
 
 # ===========================================================================
 
 def test_write_oc( base, proxy ):
 
     proxy.write( 1 )
-    assert base.is_output == False
+    assert base.direction_is_input()
 
     proxy.write( 0 )
-    assert base.is_output == True
+    assert base.direction_is_output()
     assert base.value == False
 
     proxy.write( 1 )
-    assert base.is_output == False
+    assert base.direction_is_input()
 
     proxy.inverted().write( 1 )
-    assert base.is_output == True
+    assert base.direction_is_output()
     assert base.value == False
 
     proxy.pulse( high_time = 1, low_time = 1 )
-    gf.pulse( proxy, high_time = 1, low_time = 1 )
 
 # ===========================================================================
 
 def test_direction( pin, proxy ):
     proxy.direction_set_input()
-    assert pin.is_output == False
+    assert pin.direction_is_input()
     proxy.direction_set_output()
-    assert pin.is_output == True
+    assert pin.direction_is_output()
 
 # ===========================================================================
 
@@ -94,13 +92,13 @@ def unit_test_pin_dummy():
 
     di = d.as_pin_in()
     assert di.as_pin_in() == di
-    assert d.is_output == False
+    assert d.direction_is_input()
     test_read( d, di )
     di.demo( iterations = 1, period = 1 )
 
     do = d.as_pin_out()
     assert do.as_pin_out() == do
-    assert d.is_output == True
+    assert d.direction_is_output()
     test_write( d, do )
     do.demo( iterations = 1, period = 1 )
 
@@ -111,7 +109,7 @@ def unit_test_pin_dummy():
     test_direction( d, doc.as_pin_in_out() )
 
     i = doc.as_pin_in()
-    assert d.is_output == False
+    assert d.direction_is_input()
     test_read( d, i )
 
     o = doc.as_pin_out()
@@ -139,10 +137,10 @@ def unit_test_pin_dummy():
 
 def unit_test_pin_edge():
     edge = gf.edge()
-    a = gf.make_pin_out( edge.p0 )
-    b = gf.make_pin_out( edge.p1 )
-    c = gf.make_pin_in( edge.p4 )
-    d = gf.make_pin_in( edge.p5 )
+    a = gf.pin_out( edge.p0 )
+    b = gf.pin_out( edge.p1 )
+    c = gf.pin_in( edge.p4 )
+    d = gf.pin_in( edge.p5 )
 
     a.write( 0 )
     b.write( 1 )

@@ -1,5 +1,5 @@
 import godafoss as gf
-import edge
+edge = gf.edge()
 
 p = gf.ws281x( edge.p5, 64 ).folded( 8, zigzag = True ).xy_swapped()
           

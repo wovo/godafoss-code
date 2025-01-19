@@ -1,5 +1,5 @@
 import godafoss as gf
-import edge
+edge = gf.edge()
 
 neopixels = gf.ws281x( edge.p5, 500 )
                                 

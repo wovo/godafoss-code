@@ -1,2 +1,3 @@
-python make/test.py $*
+rem python make/python/test.py $*
+python test.py
  

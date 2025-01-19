@@ -19,7 +19,7 @@ from godafoss.gf_make_pins import *
 
 # ===========================================================================
 
-class ws2801( canvas ):
+class ws2801( gf.neopixels ):
     """
     driver for neopixels with separate clock (ck) and data (si) lines
     """
@@ -31,19 +31,20 @@ class ws2801( canvas ):
         clock: [ int, pin_out, pin_in_out, pin_oc ],
         data: [ int, pin_out, pin_in_out, pin_oc ],
         n: int, 
-        background = colors.black
+        background = colors.black, 
+        order: str = "RGB"
     ):
         self._clock = make_pin_out( clock )
         self._data = make_pin_out( data )
         self._n = n
         self._background = background
         self._pixels = [ self._background for _ in range( self._n ) ]
-        canvas.__init__( self, xy( n, 1 ), self._background )
-
-    # =======================================================================
-    
-    def write_pixel_implementation( self, location: xy, ink ):
-        self._pixels[ location.x ] = ink
+        gf.neopixels.__init__( 
+            self, 
+            n, 
+            self._background,
+            order
+        )
 
     # =======================================================================
     

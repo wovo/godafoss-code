@@ -90,6 +90,14 @@ def add_file( file, file_list, sorted_files ):
 # =========================================================================== 
 
 def sorted_source_files( path ):
+    return [
+        "godafoss/docs/intro.py", 
+        "godafoss/basics.py",
+        "godafoss/adts.py",
+        "godafoss/interfaces.py",
+        "godafoss/pins.py",
+    ]
+
     file_list = find_source_files( path )
     
     sorted_files = [ 

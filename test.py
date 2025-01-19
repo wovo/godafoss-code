@@ -1,4 +1,4 @@
-import godafoss as gf
-gf.test( )
+from godafoss.tests import test
+test()
 
 

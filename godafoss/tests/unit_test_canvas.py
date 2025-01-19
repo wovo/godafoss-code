@@ -190,7 +190,7 @@ def unit_test_canvas():
     c1 = gf.canvas_dummy( gf.xy( 20, 10 ) )
     c2 = gf.canvas_dummy( gf.xy( 20, 10 ) )
     #c1.extended
-    canvas = c1.extended( c2 )
+    canvas = c1.extend( c2 )
     canvas.clear()
     canvas.write( gf.xy( 1,1 ) @ gf.line( gf.xy( 38, 8 ) ) )
     #print( c1 )

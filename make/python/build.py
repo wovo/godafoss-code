@@ -351,6 +351,8 @@ def build(
     shell: bool = False,
 ):
 
+    print( f"build {t.name}" )
+
     # create fresh work directory
     workdir = r"temp/build"
     try:
@@ -432,6 +434,8 @@ $$targets
 
 def main():
 
+    print( "start" )
+
     if len( sys.argv ) < 2:
         prefix = 8 * " "
         s = ""
@@ -476,18 +480,24 @@ def main():
             print( f"unknown argument {arg}" )
             return
             
-    if gf is {}:
+    if gf == {}:
         print( "specify gf, nogf or both" )
         return
         
+    print( "5", target, gf )    
+        
     for t in sorted( list( target ) ):
+        print( "6", t, gf.keys() )
         for g in gf.keys():
+            print( "gona build", g )
             build( targets[ t ], g, shell )
     
     
 # ===========================================================================
 
+print( "1" )
 if __name__ == '__main__':
+    print( "2" )
     main()
 
 

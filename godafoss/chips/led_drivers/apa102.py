@@ -17,7 +17,6 @@ import godafoss as gf
    
 class apa102( gf.neopixels ):
     """
-    requires neopixel support in the target, Teensy 4.1 by default doesn't
     """
 
     def __init__( 
@@ -35,7 +34,7 @@ class apa102( gf.neopixels ):
         for _ in range( n ):
             self._pixels.append( ( 0, 0, 0 ) )
             
-        neopixels.__init__( self, n, background, order )
+        gf.neopixels.__init__( self, n, background, order )
 
     # =======================================================================
     

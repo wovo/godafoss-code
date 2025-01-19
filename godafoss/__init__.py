@@ -4,7 +4,7 @@
 # part of  : godafoss micropython library
 # url      : https://www.github.com/wovo/godafoss
 # author   : Wouter van Ooijen (wouter@voti.nl) 2024
-# license  : MIT license, see license attribute (from license.py)
+# license  : MIT license, see license attribute (godafoss.license)
 #
 # ===========================================================================
 #
@@ -30,18 +30,50 @@
 #
 # ===========================================================================
 
-version = "0.2"
+__version__ = "1.0"
+__author__ = "wouter van Ooijen (wouter@voti.nl)"
+
+version = __version__
+
+
+# ===========================================================================
+#
+# MIT license text
+#
+# ===========================================================================
+
+license = """
+Copyright 2024 Wouter van Ooijen (wouter@voti.nl)
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without
+limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to
+whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
 
 
 # ===========================================================================
 
+import os
+
 try:
-    import os
-
     # present in standard Python, but not in MicroPython
-    running_micropython = False
-
     _separator = os.sep
+
+    running_micropython = False
 
     # Micropython built-in
     const = lambda x: x
@@ -50,7 +82,7 @@ try:
     import time
     initial_time = time.monotonic_ns() // 1000
 
-except:
+except AttributeError:
     # so this must be MicroPython
     running_micropython = True
 
@@ -64,6 +96,7 @@ except:
     initial_free = gc.mem_free()
 
     from micropython import const
+
 
 
 # ===========================================================================
@@ -89,8 +122,20 @@ except:
 show_loading = False
 
 # $$document( 0 )
-from godafoss.tools.enums import *
-from godafoss.tools.always import *
+from godafoss.basics import *
+from godafoss.adts import *
+from godafoss.interfaces import *
+from godafoss.pins import *
+from godafoss.ports import *
+from godafoss.edge import *
+
+#from godafoss.chips.gpio_expanders.pcf8574 import *
+
+from godafoss.graphics.canvas import *
+from godafoss.graphics.canvas_shapes import *
+from godafoss.graphics.canvas_fonts import *
+from godafoss.graphics.canvas_demo import *
+from godafoss.graphics.terminal import *
 # $$document( 1 )
 
 # ===========================================================================
@@ -147,7 +192,7 @@ def _import_path( path, name ):
 
 _loaded_attributes = {}
 
-def __getattr__( name ):
+def _x_getattr__( name ):
 
     # =======================================================================
     #
@@ -168,7 +213,7 @@ def __getattr__( name ):
 
     import gc; gc.collect()
 
-    if show_loading:
+    if True: # show_loading:
         print( f"load element {name}" )
 
     try:
@@ -198,76 +243,4 @@ def __getattr__( name ):
 
 # ===========================================================================
 
-class autoloading:
-    """
-    load a class method (only) when it is called
 
-    :param class_type: (type)
-        the class that inherits from autoloading
-
-    Inheriting from this class puts a mechanism in place that when
-    an attribute is requested that is not present,
-    attempts to import that attribute from the
-    <class name>__<attribute name>.py file.
-
-    This is done to decrease startup time and lower RAM use.
-    A compareable mechanism is used for on-demand loading
-    of top-level elements of the library.
-
-    The loaded attribute is added to the class, so on subsequent use
-    it will be used directly.
-    """
-
-    def __init__(
-        self,
-        class_type: type
-    ):
-        self._class_type = class_type
-        self._class_name = class_type.__name__
-
-    def __getattr__(
-        self,
-        obj: str,
-        obj_type: [ type or None ] = None
-    ):
-
-        if show_loading:
-            print( f"load attribute {self._class_name}.{obj}" )
-
-        import gc; gc.collect()
-
-        name = f"{self._class_name}__{obj}"
-
-        try:
-            print( f"from godafoss.gf.{name} import {name}" )
-            exec( f"from godafoss.gf.{name} import {name}" )
-
-        except:
-
-            # Get the import path for the missing attribute.
-            found = _import_path( _path, name )
-
-            if found is None:
-                raise AttributeError(
-                    f"unknown attribute '{self._class_name}.{obj}'"
-                ) from None
-
-            # Import and retrieve the missing attribute
-            exec( f"from {found} import {name}" )
-
-        func = constructor = eval( f"{name}" )
-
-        # if it is a class, wrap its constructor in a fuction
-        if isinstance( func, type ):
-            func = lambda *args, **kwargs: constructor( *args, **kwargs )
-
-        # inject it into the class (not into the object!).
-        setattr( self._class_type, obj, func )
-
-        # Return a trampoline that prepends the self argument.
-        # This is only relevant for this one call,
-        # next time the original function will be found in the class.
-        return lambda *args, **kwargs: func( self, *args, **kwargs )
-
-
-# ===========================================================================

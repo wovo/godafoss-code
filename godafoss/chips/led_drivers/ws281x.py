@@ -15,165 +15,34 @@ import godafoss as gf
 
 # ===========================================================================
 
-class _neopixels( gf.canvas ):
-    """
-    neopixels common driver
-    
-    $macro_start neopixels
-    :param n: (int)
-        the number of pixels in the chain
-    
-    :param background: (:class:`~godafoss.color`)
-        the background color (default: black)
-        
-    :param order: (str)
-        the color order (default: RGB)    
-        
-    $macro_end    
-    $macro_insert neopixels
-    
-    Neopixels are seperately controllable RGB LEDs,
-    either as separate chip and LED, or as chip combined with an RGB LED.
-    Neopixels can be connected into a chain, where only the first
-    pixel is connected to a microcontroller.
-    Power and data (and for some types a clock) are fed
-    from each neopixel to the next.
-    Such chains are often used in strips, and sometimes as rectanges
-    (where the chain is folded).
-    
-    The common chip are summarized in the table below.
-    The apa102 and ws2801 chips have dedicated driver classes.
-    The hd107 seems to use the same protocol as the apa102, so
-    it should work with that driver.
-    The ws2811, ws2812, ws2813 and ws2815 chips 
-    can use the ws281x driver class.
-    
-    +----------+-------+--------------+--------+------------------+
-    | chip     | form  | interface    | power  | protocol         |
-    +----------+-------+--------------+--------+------------------+
-    | apa102   | chip  | data, clock  | 5V     | start, data, end |
-    +----------+-------+--------------+--------+------------------+
-    | hd107    | led   | data, clock  | 5V     | start, data, end |
-    +----------+-------+--------------+--------+------------------+
-    | ws2801   | chip  | data, clock  | 5V     | data only        |
-    +----------+-------+--------------+--------+------------------+
-    | ws2811   | chip  | data         | 5V     | data only        |
-    +----------+-------+--------------+--------+------------------+
-    | ws2812   | led   | data         | 5V     | data only        |
-    +----------+-------+--------------+--------+------------------+
-    | ws2813   | led   | data         | 5V     | data only        |
-    +----------+-------+--------------+--------+------------------+
-    | ws2815   | led   | data         | 12V    | data only        |
-    +----------+-------+--------------+--------+------------------+
-    
-    Be aware that a chain of neopixels can draw a significant amount of
-    current: at for brightness 60mA per pixel.
-    Hence for non-trivial amounts of neopixels a separate power supply 
-    is required, and power + ground 'bypass' wiring might be needed.
-    """
-
-    # =======================================================================
-
-    def __init__( 
-        self,  
-        n: int, 
-        background, 
-        order: str = "RGB"
-    ):
-        gf.canvas.__init__(
-            self,
-            size = xy( n, 1 ),
-            is_color = True,
-            background = colors.black
-        )
-        
-        order = order.upper()
-        if order == "RGB":
-            self._permutate = lambda ink: ( ink.red, ink.green, ink.blue )
-        elif order == "RBG":
-            self._permutate = lambda ink: ( ink.red, ink.blue, ink.green )
-        elif order == "BGR":
-            self._permutate = lambda ink: ( ink.blue, ink.green, ink.red )
-        elif order == "BRG":
-            self._permutate = lambda ink: ( ink.blue, ink.red, ink.green )
-        elif order == "GRB":
-            self._permutate = lambda ink: ( ink.green, ink.red, ink.blue )
-        elif order == "GBR":
-            self._permutate = lambda ink: ( ink.green, ink.blue, ink.red )
-        else:
-            raise ValueError( "color order '%s'", order )
-        
-
-    # =======================================================================
-    
-    def _write_pixel_implementation( 
-        self, 
-        location: ( int, gf.xy ), 
-        ink: gf.color
-    ):      
-        self._pixels[ location.x ] = self._permutate( ink )
-
-    # =======================================================================
-    
-    def demo_color_wheel(
-        self,
-        color_list = (
-            colors.red,
-            colors.green,
-            colors.blue,
-            colors.white
-        ),
-        delay: int = 10_000,
-        iterations = None,
-        dim: int = 30
-    ):
-        for _ in repeater( iterations ):
-            for c in ( color_list ):
-                self.clear()
-                for n in range( self.size.x + 1 ):
-                    self.flush()
-                    sleep_us( delay )
-                    self.write_pixel(
-                        xy( n, 0 ),
-                        c // dim
-                    )  
-                for n in range( self.size.x + 1 ):
-                    self.flush()
-                    sleep_us( delay )
-                    self.write_pixel(
-                        xy( n, 0 ),
-                        colors.black
-                    ) 
-    
-# ===========================================================================
-
-   
-class apa102( neopixels ):
+class ws281x( gf.neopixels ):
     """
     requires neopixel support in the target, Teensy 4.1 by default doesn't
     """
 
     def __init__( 
         self, 
-        ci: int,
-        di: int,
+        d: int,
         n: int, 
-        background = colors.black, 
+        background = gf.colors.black, 
         order: str = "RGB"
     ):
-        import machine, APA102
-        self._pixels = apa102.APA102(
-            machine.Pin( ci ),
-            machine.Pin( di ),
-            n
-        )
-        neopixels.__init__( self, n, background, order )
+        import machine, neopixel
+        self._pixels = neopixel.NeoPixel( machine.Pin( d ), n )
+        
+        for _ in range( n ):
+            self._pixels[ n ] = ( 0, 0, 0 )
+            
+        gf.neopixels.__init__( self, n, background, order )
 
     # =======================================================================
-
-    def _flush_implementation( self ):
-        self._pixels.write()    
-
+    
+    def _flush_implementation(
+        self,
+        forced = True
+    ):
+        self._pixels.write()
+        
     # =======================================================================
     
 # ===========================================================================

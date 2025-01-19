@@ -1,5 +1,5 @@
 import godafoss as gf
-import edge
+edge = gf.edge()
 
 # number of pixels:
 # rings 8, 16, 24

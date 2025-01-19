@@ -1,5 +1,5 @@
 import godafoss as gf
-import edge
+edge = gf.edge()
 
 n = gf.ws281x( edge.neopixel_data, 64 )
 n.demo()
