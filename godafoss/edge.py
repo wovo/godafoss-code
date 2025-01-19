@@ -10,6 +10,7 @@
 
 import godafoss as gf
 import os
+import platform
 
 silent = False
 
@@ -57,7 +58,7 @@ class edge(
     def __init__(
         self,
         pins = None,
-        port_name = "COM42"
+        port_name = None
     ) -> None:
 
         if pins is not None:
@@ -93,20 +94,40 @@ class edge(
         self,
         port_name: str
     ) -> None:
-
+    
         try:
-            uname = os.uname()
+            s = platform.system()
         except AttributeError:
-            uname = None
-            
-        if uname is not None:
+        
+            # MicroPython
+            uname = os.uname()
             self._init_pins_from_uname( os.uname() )
             gf.port_in_out.__init__( self, self.pins )
+            return
+            
+        if ( s == "Windows" ) or ( port_name is not None ):
+        
+            # Windows or Linux native, use a serial proxy
+            self.system = f"native on {s} ia proxy on {port_name}"
+            self._init_pins_proxy( port_name or "COM42" )
+            return
+            
+        if s != "Linux":
+            print( f"native system not recognised '{name}'" ) 
+            return
+            
+        # Linux, no serial port specified
+        
+        pi = False
+        for line in open( "/proc/cpuinfo" ).readlines():
+            pi |= line.find( "Raspberry Pi" ) > -1
+            
+        if pi:
+            self.system = "Raspberry Pi native pins"
+            self.pins = ( 36, 35, 37, 34, 3, 4, 12, 17 )
+            return
 
-        else:
-            import platform
-            name = platform.system()
-            self._init_pins_native( name, port_name )
+        print( "Linux, no Pi, no serial port found" )            
 
     # =======================================================================
 
@@ -167,22 +188,6 @@ class edge(
 
         else:
             print( f"rp2 unrecognized adc( 28 ) = {v}" )
-
-    # =======================================================================
-
-    def _init_pins_native(
-        self,
-        name: str,
-        port_name: str
-    ) -> None:
-
-        if name == "Windows":
-            self.system = f"native on windows via proxy on {port_name}"
-            self._init_pins_proxy( port_name )
-            self._low = 0
-
-        else:
-            print( f"native system not recognised '{name}'" )
 
     # =======================================================================
 
