@@ -125,6 +125,7 @@ class edge(
         if pi:
             self.system = "Raspberry Pi native pins"
             self.pins = ( 36, 35, 37, 34, 3, 4, 12, 17 )
+            gf.port_in_out.__init__( self, self.pins )
             return
 
         print( "Linux, no Pi, no serial port found" )            
