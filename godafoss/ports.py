@@ -176,7 +176,7 @@ class port_out(
 
     def write(
         self,
-        value: int
+        values: int
     ) -> None:
         for pin in self.pins:
             pin.write( ( values & 0b1 ) == 0b1 )
@@ -396,6 +396,13 @@ class port_in_out(
         return _port_in_out_as_port_oc( self )
 
     # =======================================================================
+    
+    def kitt(
+        self,
+        *args,
+        **kwargs
+    ) -> None:
+        kitt( self.as_port_out(), *args, **kwargs )
 
 
 # ===========================================================================
@@ -834,6 +841,7 @@ class port_in_out_pin_proxy(
         self._port = port
         self._port._write_buffer = 0
         self._port._directions_buffer = 0
+        self.pin = None
         _make_masks( self, n )
         gf.pin_in_out.__init__( self, None )
 

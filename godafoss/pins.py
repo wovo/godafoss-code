@@ -12,6 +12,12 @@ import godafoss as gf
 
 
 # ===========================================================================
+
+class _worker:
+    pass
+
+
+# ===========================================================================
 #
 # pin superclasses (used in type hints)
 #
@@ -103,18 +109,23 @@ class pin_in(
         self,
         pin: gf.Union[ int, str, None, can_pin_in ]
     ):
+    
+        if pin is None:
+            # dummy pin, use the methods of this class
+            self.pin = None
+            return
+        
+        elif isinstance( pin, _worker ):
+            self.worker = pin
+            
+        elif isinstance( pin, can_pin_in ):
+            self.worker = pin.as_pin_in()    
 
-        if pin is not None:
+        else:
+            self.worker = gf.gpio_pin_in( pin )
 
-            try:
-                self.worker = pin.as_pin_in()
-
-            except:
-                self.pin_nr = pin
-                self.worker = _gpio_in( self.pin_nr )
-
-            # to speed things up: use the workers method directly
-            self.read = self.worker.read
+        self.pin = self.worker.pin
+        self.read = self.worker.read
 
     # =======================================================================
 
@@ -213,17 +224,22 @@ class pin_out(
         pin: gf.Union[ None, int, str, can_pin_out ]
     ):
 
-        if pin is not None:
+        if pin is None:
+            # dummy pin, use the methods of this class
+            self.pin = None
+            return
+        
+        elif isinstance( pin, _worker ):
+            self.worker = pin
+            
+        elif isinstance( pin, can_pin_out ):
+            self.worker = pin.as_pin_out()
+            
+        else:
+            self.worker = gf.gpio_pin_out( pin )
 
-            try:
-                self.worker = pin.as_pin_out()
-
-            except:
-                self.pin_nr = pin
-                self.worker = _gpio_out( self.pin_nr )
-
-            # to speed things up: use the workers method directly
-            self.write = self.worker.write
+        self.pin = self.worker.pin
+        self.write = self.worker.write
 
     # =======================================================================
 
@@ -342,23 +358,30 @@ class pin_in_out(
 
     def __init__(
         self,
-        pin: "int | str | None | can_pin_in_out"
+        pin: "int | str | None | can_pin_in_out",
+        pull_up: bool = False
     ):
-        print( "343", pin )
-        if pin is not None:
+        if pin is None:
+            # dummy pin, use the methods of this class
+            self.pin = None
+            return
 
-            try:
-                self.worker = pin.as_pin_in_out()
-
-            except:
-                self.pin_nr = pin
-                self.worker = _gpio_in_out( self.pin_nr )
-
-            # to speed things up: use the workers methods directly
-            self._direction_set = self.worker._direction_set
-            self.write = self.worker.write
-            self.read = self.worker.read
-            self.direction_set_input()
+        elif isinstance( pin, _worker ):
+            self.worker = pin
+            
+        elif isinstance( pin, can_pin_in_out ):
+            self.worker = pin.as_pin_in_out()
+            
+        else:
+            self.worker = gf.gpio_pin_in_out( pin )
+                
+        self.pin = self.worker.pin
+        self._direction_set = self.worker._direction_set
+        self.write = self.worker.write
+        self.read = self.worker.read
+            
+        # start as input
+        self.direction_set_input()
 
     # =======================================================================
 
@@ -600,19 +623,24 @@ class pin_oc(
         self,
         pin: "int | str | None | gf.can_pin_oc"
     ):
+    
+        if pin is None:
+            # dummy pin, use the methods of this class
+            self.pin = None
+            return    
+    
+        elif isinstance( pin, _worker ):
+            self.worker = pin
+            
+        elif isinstance( pin, can_pin_oc ):
+            self.worker = pin.as_pin_oc()
+            
+        else:
+            self.worker = gf.gpio_pin_oc( pin )
 
-        if pin is not None:
-
-            try:
-                self.worker = pin.as_pin_oc()
-
-            except:
-                self.pin_nr = pin
-                self.worker = gf.gpio_oc( self.pin_nr )
-
-            # to speed things up: use the workers methods directly
-            self.write = self.worker.write
-            self.read = self.worker.read
+        self.pin = self.worker.pin
+        self.write = self.worker.write
+        self.read = self.worker.read
 
     # =======================================================================
 
@@ -822,7 +850,7 @@ class _pin_out_inverted( pin_out ):
 
 # ===========================================================================
 
-class _pin_in_out_inverted( pin_in_out ):
+class _pin_in_out_inverted( pin_in_out, _worker ):
 
     # =======================================================================
 
@@ -831,16 +859,9 @@ class _pin_in_out_inverted( pin_in_out ):
         pin
     ):
         self._pin = pin
+        self.pin = self._pin.pin
         pin_in_out.__init__( self, self )
-        # can steal!
-
-    # =======================================================================
-
-    def _direction_set(
-        self,
-        direction: bool
-    ) -> None:
-        self._pin._direction_set( direction )
+        self._direction_set = pin._direction_set
 
     # =======================================================================
 
@@ -869,7 +890,6 @@ class _pin_oc_inverted( pin_oc ):
     def __init__( self, pin ):
         self._pin = pin
         pin_oc.__init__( self, self )
-        # can steal!
 
     # =======================================================================
 
@@ -901,21 +921,19 @@ class _pin_in_out_as_pin_in( pin_in ):
         self,
         pin: "gf.pin_in_out"
     ) -> None:
-        gf.pin_in.__init__( self, self )
         self._pin = pin
         self._pin.direction_set_input()
+        gf.pin_in.__init__( self, self )
 
-    # =======================================================================
-
-    def read( self ) -> bool:
-        return self._pin.read()
+        # speed things up
+        self.read = self._pin.read
 
     # =======================================================================
 
 
 # ===========================================================================
 
-class _pin_in_out_as_pin_out( pin_out ):
+class _pin_in_out_as_pin_out( pin_out, _worker ):
 
     # =======================================================================
 
@@ -923,15 +941,10 @@ class _pin_in_out_as_pin_out( pin_out ):
         self,
         pin: pin_in_out
     ) -> None:
-        print( f"create pin_out {self} from {pin}" )
-        #breakpoint()
-        self._pin = pin
-        self._pin.direction_set_output()
+        self.pin = pin.pin 
+        self.write = pin.write
         gf.pin_out.__init__( self, self )
-        print( "done" )
-
-        # speed things up
-        self.write = self._pin.write
+        pin.direction_set_output()
 
     # =======================================================================
 
@@ -1065,303 +1078,34 @@ class _pin_oc_as_pin_out( pin_out ):
 
 # ===========================================================================
 #
-# gpio
+# adc
 #
 # ===========================================================================
 
-class _gpio_in( pin_in ):
+class pin_adc( gf.adc ):
     """
-    chip GPIO pin used as input
+    analog input pin
 
-    :param pin_nr: (int)
-        the chip pin number
-    """
+    :param pin: int | str
+        target chip pin 
 
-    # =======================================================================
+    This class abstracts an ADC (Analog to Digital Converter)
+    input pin of the target chip.
 
-    def __init__(
-        self,
-        pin_nr: int,
-        pull_up: bool = False
-    ) -> None:
-        if gf.running_micropython:
-            import machine
-            self._pin = machine.Pin(
-                pin_nr,
-                machine.Pin.IN,
-                machine.Pin.PULL_UP if pull_up else None
-            )
-            pin_in.__init__( self, self )
-        else:
-            import RPi.GPIO as GPIO
-            GPIO.setmode( GPIO.BCM )
-            GPIO.setup( pin_nr, GPIO.IN )
-            self._pin_nr = pin_nr
-
-    # =======================================================================
-
-    def read(
-        self
-    ) -> None:
-        """
-        """
-        if gf.running_micropython:
-            return self._pin.value()
-        else:
-            return GPIO.input( self._pin_nr )
-
-    # =======================================================================
-
-
-# ===========================================================================
-
-class _gpio_out( pin_out ):
-    """
-    chip GPIO pin used as output
-
-    :param pin_nr: (int)
-        the chip pin number
+    $macro_insert invertible
+    For the inverted version, the read() method returns
+    the complement of the value that would be retruned by the
+    original adc.
     """
 
     # =======================================================================
 
     def __init__(
         self,
-        pin_nr: int
-    ) -> None:
-        self._pin_nr = pin_nr
-
-        if gf.running_micropython:
-            import machine
-            self._pin = machine.Pin( self._pin_nr, machine.Pin.OUT )
-
-        else:
-            gf.gpio_out_hosted( self )
-
-        pin_out.__init__( self, self )
-
-    # =======================================================================
-
-    def write(
-        self,
-        value: bool
-    ) -> None:
-        """
-        set the pin value
-
-        :param value: (bool)
-            the new pin value (level)
-        """
-
-        self._pin.value( value )
-
-
-    # =======================================================================
-
-    def gpio_out_hosted(
-    self: pin_out
+        pin: "int | str"
     ):
-
-
-    # =======================================================================
-    #
-    # u2if
-    #
-    # =======================================================================
-
-     try:
-
-        from machine import u2if, Pin
-
-        self._pin = Pin( u2if.GP3, Pin.OUT )
-
-        self.write = lambda self, value: \
-            self._pin.value( Pin.HIGH if value else Pin.LOW )
-
-        pin_out.__init( self )
-        return
-
-
-     except ModuleNotFoundError:
-        pass
-
-    # =======================================================================
-    #
-    # RPi.GPIO
-    #
-    # =======================================================================
-
-     try:
-        import RPi.GPIO as GPIO
-        GPIO.setmode( GPIO.BCM )
-        GPIO.setup( self._pin_nr, GPIO.OUT )
-
-        self.write = lambda self, value: \
-            GPIO.output( self._pin_nr, GPIO.HIGH if value else GPIO.LOW )
-
-        return
-
-     except ModuleNotFoundError:
-        pass
-
-    # =======================================================================
-    #
-    # blinka using adafruit u2if clone
-    #
-    # =======================================================================
-
-
-     try:
-        import digitalio
-        import board
-
-        p = eval( f"board.GP{self._pin_nr}" )
-
-        self._pin = digitalio.DigitalInOut( p )
-        self._pin.direction = digitalio.Direction.OUTPUT
-
-        setattr(
-            self,
-            "write",
-            lambda value: setattr( self._pin, "value", value )
-        )
-
-        return
-
-     except ModuleNotFoundError:
-        pass
-
-     raise Exception( "no GPIO support available" )
-
-
-# ===========================================================================
-
-class _gpio_in_out( pin_in_out ):
-    """
-    chip GPIO pin used as input
-
-    :param pin_nr: (int)
-        the chip pin number
-    """
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin_nr: int,
-        pull_up: bool = False
-    ) -> None:
-        self.pull_up = pull_up
-        if gf.running_micropython:
-            import machine
-            self._pin = machine.Pin(
-                pin_nr,
-                machine.Pin.IN,
-                machine.Pin.PULL_UP if self.pull_up else None
-            )
-            pin_in_out.__init__( self, None )
-        else:
-            import RPi.GPIO as GPIO
-            GPIO.setmode( GPIO.BCM )
-            GPIO.setup( pin_nr, GPIO.IN )
-            self._pin_nr = pin_nr
-
-    # =======================================================================
-
-    def _direction_set( 
-        self,
-        direction: bool
-    ) -> None:
-        if gf.running_micropython:
-            import machine
-            
-            if direction:
-                self._pin.init( 
-                    machine.Pin.IN,
-                    machine.Pin.PULL_UP if self.pull_up else None
-                )
-            else:    
-                self._pin.init( 
-                    machine.Pin.OUT 
-                )      
-            
-        else:
-            import RPi.GPIO as GPIO
-            
-            if direction:
-                # pull-up?
-                GPIO.setup( self._pin_nr, GPIO.IN )
-            else:    
-                GPIO.setup( self._pin_nr, GPIO.OUT )
-
-    # =======================================================================
-
-    def read(
-        self
-    ) -> None:
-        """
-        """
-        if gf.running_micropython:
-            return self._pin.value()
-        else:
-            return GPIO.input( self._pin_nr )
-
-    # =======================================================================
-
-    def write(
-        self,
-        value: bool
-    ) -> None:
-        """
-        set the pin value
-
-        :param value: (bool)
-            the new pin value (level)
-        """
-        if gf.running_micropython:
-            self._pin.value( value )
-        else:
-            import RPi.GPIO as GPIO
-            GPIO.output( self._pin_nr, GPIO.HIGH if value else GPIO.LOW )
-
-    # =======================================================================
-
-
-
-# ===========================================================================
-
-class _gpio_oc( pin_oc ):
-    """
-    chip GPIO pin used as input
-
-    :param pin_nr: (int)
-        the chip pin number
-    """
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin_nr: int,
-        pull_up: bool = False
-    ) -> None:
-        import machine
-        print( pin_nr )
-        self._pin = machine.Pin(
-            pin_nr,
-            machine.Pin.IN,
-            machine.Pin.PULL_UP if pull_up else None
-        )
-        pin_oc.__init__( self )
-
-    # =======================================================================
-
-    def read(
-        self
-    ) -> None:
-        """
-        """
-        return self._pin.value()
+        self.pin = pin
+        self.read = gf.gpio_pin_adc( pin ).read
 
     # =======================================================================
 
@@ -1441,6 +1185,7 @@ def pulse(
     p.write( False )
     if low_time != 0:
         gf.sleep_us( low_time )
+
 
 # ===========================================================================
 

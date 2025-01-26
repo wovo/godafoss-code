@@ -9,6 +9,18 @@ and copy the godafoss directory to your MicroPython device.
 TODO
 ====
 
+- blink fast all same results on pico 2?
+- test blinka & direct on pi
+
+- analog demo ala input pin
+- way to run demos/edge/edge_blink.py directly from dos prompt
+- hd44780
+- bus.py i2c & spi & neopixels & lcd base abstractions
+- use time asbstraction (one) ?
+- check pullup handling
+- test coverage
+- auto-detect usb serial on Linux
+
 - cleanup files before ports.py
 
 - avoid lambda and local classes because they are created in RAM?

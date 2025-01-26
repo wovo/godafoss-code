@@ -99,6 +99,20 @@ a fast target with ample RAM is recommended.
 My current (2024) preference is the Teensy 4.1
 (a pity its MicroPython port doesn't have the nexopixel driver built in).
 
+**Hosted**
+
+Godafoss (in its source form) can be used with standard 
+Python on Windows or Linux.
+This can be usefull for debugging hardware-independent code.
+The edge class, running on a host, provides a (very slow) 
+way to access the pins on a connected micro-controller 
+running the edge.server() pin proxy.
+On a Raspberry Pi the GPIO pins can be used directly.
+Pin access is still not as fast as running on a micro-controller,
+but the CPU is very fast and there is no need to copy
+the source files back and forth.s
+
+
 
 Blinky
 =============================================================================

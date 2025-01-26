@@ -68,6 +68,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # ===========================================================================
 
 import os
+   
 
 try:
     # present in standard Python, but not in MicroPython
@@ -126,16 +127,22 @@ from godafoss.basics import *
 from godafoss.adts import *
 from godafoss.interfaces import *
 from godafoss.pins import *
+from godafoss.gpio import *
 from godafoss.ports import *
 from godafoss.edge import *
+#from godafoss.canvas import *
+#from godafoss.shapes import *
+#from godafoss.fonts import *
+#from godafoss.terminal import *
+
+#from godafoss.chips.lcds.hd44780 import *
+#from godafoss.displays import *
+#from godafoss.targets import *
+
 
 #from godafoss.chips.gpio_expanders.pcf8574 import *
 
-from godafoss.graphics.canvas import *
-from godafoss.graphics.canvas_shapes import *
-from godafoss.graphics.canvas_fonts import *
-from godafoss.graphics.canvas_demo import *
-from godafoss.graphics.terminal import *
+
 # $$document( 1 )
 
 # ===========================================================================
