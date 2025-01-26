@@ -244,138 +244,7 @@ class _micropython_pin_adc:
 
 # ===========================================================================
 #
-# blinka
-#
-# ===========================================================================
-
-class _blinka_pin_in:
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin: int,
-        pull_up: bool = False        
-    ) -> None:
-        self.pin = pin
-        _pin = digitalio.DigitalInOut(
-            eval( f"board.D{pin}" ),
-#            machine.Pin.IN,
-#            machine.Pin.PULL_UP if pull_up else None
-        )   
-        _pin.direction = digitalio.Direction.OUTPUT
-        self.read = _pin.value
-
-    # =======================================================================  
-    
-
-# ===========================================================================
-
-class _blinka_pin_out:
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin: int      
-    ) -> None:
-        self.pin = pin
-        _pin = digitalio.DigitalInOut(
-            eval( f"board.D{pin}" ),
-#            machine.Pin.IN,
-        )   
-        _pin.direction = digitalio.Direction.OUTPUT
-        self.write = _pin.value
-
-    # =======================================================================
-   
-
-# ===========================================================================
-
-class _blinka_pin_in_out:
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin: int,
-        pull_up: bool = False        
-    ) -> None:
-        print( "blinka" )
-        self.pin = pin
-#        self.pull = machine.Pin.PULL_UP if pull_up else None
-        self._pin = digitalio.DigitalInOut(
-            eval( f"board.D{pin}" ),
-#            machine.Pin.IN,
-#            self.pull
-        )   
-        self.write = self.read = self._pin.value
-
-    # =======================================================================
-    
-    def _direction_set( 
-        self,
-        direction: bool
-    ) -> None:
-        self._pin.direction = (
-            digitalio.Direction.INPUT 
-            if direction 
-            else digitalio.Direction.OUTPUT
-        )
-
-    # =======================================================================
-    
-
-# ===========================================================================
-
-class _blinka_pin_oc:
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin: int,
-        pull_up: bool = False        
-    ) -> None:
-        self.pin = pin
-        self._pin = machine.Pin(
-            eval( f"blinka.GP{pin}" ),
-            machine.Pin.OPEN_DRAIN,
-            machine.Pin.PULL_UP if pull_up else None
-        )   
-        self.write = self.read = self._pin.value
-
-    # =======================================================================
-    
-
-# ===========================================================================
-
-class _blinka_pin_adc:
-
-    # =======================================================================
-
-    def __init__(
-        self,
-        pin: "int | str"
-    ):
-        self.pin = pin
-        self._adc = machine.blinka.ADC( 
-            eval( f"blinka.GP{pin}" )
-        )
-
-    # =======================================================================
-
-    def read( 
-        self 
-    ) -> gf.fraction:
-        return gf.fraction( self._adc.read_u16(), 65535 )
-
-    # =======================================================================
-    
-
-# ===========================================================================
-#
-# Raspberry Pi GPIO
+# Raspberry Pi RPi.GPIO
 #
 # ===========================================================================
 
@@ -548,6 +417,143 @@ class _raspberry_pi_pin_adc:
         raise Exception( "No ADC pin aviable on a Raspberry Pi" )
 
     
+# ===========================================================================
+#
+# blinka
+#
+# ===========================================================================
+
+class _blinka_pin_in:
+
+    # =======================================================================
+
+    def __init__(
+        self,
+        pin: int,
+        pull_up: bool = False        
+    ) -> None:
+        self.pin = pin
+        _pin = digitalio.DigitalInOut( eval( f"board.D{pin}" ) )   
+        _pin.direction = digitalio.Direction.INPUT
+        if pull_up:
+            _pin.pull = digitalio.Pull.UP
+        self.read = _pin.value
+
+    # =======================================================================  
+    
+
+# ===========================================================================
+
+class _blinka_pin_out:
+
+    # =======================================================================
+
+    def __init__(
+        self,
+        pin: int      
+    ) -> None:
+        self.pin = pin
+        _pin = digitalio.DigitalInOut(
+            eval( f"board.D{pin}" ),
+#            machine.Pin.IN,
+        )   
+        _pin.direction = digitalio.Direction.OUTPUT
+        self.write = _pin.value
+
+    # =======================================================================
+   
+
+# ===========================================================================
+
+class _blinka_pin_in_out:
+
+    # =======================================================================
+
+    def __init__(
+        self,
+        pin: int,
+        pull_up: bool = False        
+    ) -> None:
+        self.pin = pin
+        self._pin = digitalio.DigitalInOut( eval( f"board.D{pin}" ) )   
+        _pin.direction = digitalio.Direction.INPUT
+        if pull_up:
+            _pin.pull = digitalio.Pull.UP        
+        self.write = self.read = self._pin.value
+
+    # =======================================================================
+    
+    def _direction_set( 
+        self,
+        direction: bool
+    ) -> None:
+        self._pin.direction = (
+            digitalio.Direction.INPUT 
+            if direction 
+            else digitalio.Direction.OUTPUT
+        )
+
+    # =======================================================================
+    
+
+# ===========================================================================
+
+class _blinka_pin_oc:
+
+    # =======================================================================
+
+    def __init__(
+        self,
+        pin: int,
+        pull_up: bool = False        
+    ) -> None:
+        self.pin = pin
+        self._pin = digitalio.DigitalInOut( eval( f"board.D{pin}" ) )   
+        _pin.direction = digitalio.Direction.INPUT
+        if pull_up:
+            _pin.pull = digitalio.Pull.UP        
+        self.read = self._pin.value
+
+    # =======================================================================
+    
+    def write(
+        self,
+        value: "bool | int"
+    ) -> None:
+        if value:
+            self._pin.direction = digitalio.Direction.INPUT     
+        else:  
+            self._pin.direction = digitalio.Direction.OUTPUT
+            self._pin.value( 0 )    
+
+    # =======================================================================
+
+
+# ===========================================================================
+
+class _blinka_pin_adc:
+
+    # =======================================================================
+
+    def __init__(
+        self,
+        pin: "int | str"
+    ):
+        self.pin = pin
+        self._adc = machine.blinka.ADC( 
+            eval( f"blinka.GP{pin}" )
+        )
+
+    # =======================================================================
+
+    def read( 
+        self 
+    ) -> gf.fraction:
+        return gf.fraction( self._adc.read_u16(), 65535 )
+
+    # =======================================================================
+    
+
 # ===========================================================================
 
 # set the default    

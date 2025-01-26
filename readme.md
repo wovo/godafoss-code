@@ -9,8 +9,10 @@ and copy the godafoss directory to your MicroPython device.
 TODO
 ====
 
+- test board for pin directions using resistors
 - blink fast all same results on pico 2?
 - test blinka & direct on pi
+- https://abyz.me.uk/rpi/pigpio/examples.html#Python%20code
 
 - analog demo ala input pin
 - way to run demos/edge/edge_blink.py directly from dos prompt
