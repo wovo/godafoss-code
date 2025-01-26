@@ -10,18 +10,22 @@
 
 import godafoss as gf
 
+# micropython
 try:
     import machine
     from machine import Pin
 except:
     pass   
 
+# blinka
 try:
-    import board   
+ import board
+ import digitalio
+ import busio 
 except:
-    pass  
+    pass   
 
-    
+# raspberry pio RPi.GPIO    
 try:
     import RPi.GPIO as GPIO    
 except:
@@ -90,6 +94,7 @@ def gpio_native() -> None:
         _gpio_use( "micropython" )
     else:
         try:
+            GPIO.setwarnings( False )
             GPIO.setmode( GPIO.BCM )    
         except:
             pass        
@@ -296,12 +301,13 @@ class _blinka_pin_in_out:
         pin: int,
         pull_up: bool = False        
     ) -> None:
+        print( "blinka" )
         self.pin = pin
-        self.pull = machine.Pin.PULL_UP if pull_up else None
-        self._pin = machine.Pin(
-            eval( f"blinka.GP{pin}" ),
-            machine.Pin.IN,
-            self.pull
+#        self.pull = machine.Pin.PULL_UP if pull_up else None
+        self._pin = digitalio.DigitalInOut(
+            eval( f"board.D{pin}" ),
+#            machine.Pin.IN,
+#            self.pull
         )   
         self.write = self.read = self._pin.value
 
@@ -311,9 +317,10 @@ class _blinka_pin_in_out:
         self,
         direction: bool
     ) -> None:
-        self._pin.init( 
-            machine.Pin.IN if direction else machine.Pin.OUT,
-            self.pull
+        self._pin.direction = (
+            digitalio.Direction.INPUT 
+            if direction 
+            else digitalio.Direction.OUTPUT
         )
 
     # =======================================================================
@@ -467,12 +474,12 @@ class _raspberry_pi_pin_in_out:
     
     def _direction_set( 
         self,
-        direction: bool
+        direction: "bool | int"
     ) -> None:
         GPIO.setup(
             self.pin, 
             GPIO.IN if direction else GPIO.OUT,
-            pull_up_down = GPIO.PUD_UP if self.pull_up else GPIO.PUD_OFF 
+            pull_up_down = self.pull
         )
 
     # =======================================================================
@@ -545,6 +552,7 @@ class _raspberry_pi_pin_adc:
 
 # set the default    
 gpio_native()  
+#gpio_blinka()
 
 
 # ===========================================================================

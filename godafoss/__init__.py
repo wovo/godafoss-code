@@ -133,9 +133,9 @@ from godafoss.edge import *
 #from godafoss.canvas import *
 #from godafoss.shapes import *
 #from godafoss.fonts import *
-#from godafoss.terminal import *
+from godafoss.terminal import *
 
-#from godafoss.chips.lcds.hd44780 import *
+from godafoss.chips.lcds.hd44780 import *
 #from godafoss.displays import *
 #from godafoss.targets import *
 
