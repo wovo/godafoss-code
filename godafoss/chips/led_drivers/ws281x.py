@@ -30,8 +30,8 @@ class ws281x( gf.neopixels ):
         import machine, neopixel
         self._pixels = neopixel.NeoPixel( machine.Pin( d ), n )
         
-        for _ in range( n ):
-            self._pixels[ n ] = ( 0, 0, 0 )
+        for i in range( n ):
+            self._pixels[ i ] = ( 0, 0, 0 )
             
         gf.neopixels.__init__( self, n, background, order )
 

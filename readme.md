@@ -9,6 +9,19 @@ and copy the godafoss directory to your MicroPython device.
 TODO
 ====
 
+- disinguish e-ink from other displays
+- separate demo for e-ink
+- use built-ins for rectangle, circle, etc, check badger2040
+- badger gray-scale: remove or include??
+- shared copyright, mention elsewhere???
+- badge demo for e-inks!
+- more fonts?
+- badger demo, incl switching -> display QR
+- e-ink has some ghosting...
+- write (text) framed, centered, bold, enlarged
+- maybe framed_write()
+- rotate etc. voor die badge
+
 - test board for pin directions using resistors
 - blink fast all same results on pico 2?
 - test blinka & direct on pi

@@ -1,0 +1,855 @@
+# ===========================================================================
+#
+# file     : generic_color_lcd.py
+# part of  : godafoss micropython library
+# url      : https://www.github.com/wovo/godafoss
+# author   : Wouter van Ooijen (wouter@voti.nl) 2024
+# license  : MIT license, see license  (from license.py)
+#
+# ===========================================================================
+
+from godafoss import *
+
+    
+# ===========================================================================
+#
+#  Most comments in this file (especially the first-person comments)
+# are by Salvatore Sanfilippo.
+#
+# ===========================================================================
+
+def _clear_lut(
+    lut
+) -> None:
+    for i in range( len( lut ) ):
+        lut[ i ] = 0
+
+
+# ===========================================================================
+
+def _make_bytes(
+    data
+) -> bytes:
+    if isinstance( data, int):
+        return bytes( [ data ] )
+        
+    if isinstance( data, list ):
+        return bytes( data )
+        
+    return data
+
+
+# ===========================================================================
+#
+# Set a given row in a waveform lookup table.
+# Lookup tables are 6 rows per 7 cols, like in this
+# example:
+#
+# 0x40, 0x17, 0x00, 0x00, 0x00, 0x02,  <- step 0
+# 0x90, 0x17, 0x17, 0x00, 0x00, 0x02,  <- step 1
+# 0x40, 0x0A, 0x01, 0x00, 0x00, 0x01,  <- step 2
+# 0xA0, 0x0E, 0x0E, 0x00, 0x00, 0x02,  <- step 3
+# 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  <- step 4
+# 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  <- step 5
+# 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  <- step 6
+#
+# Fror each step the first byte encodes the 4 patterns, two bits
+# each. The next 4 bytes the duration in frames. The Final byte
+# the repetition number. See the top comment of set_waveform_lut()
+# for more info.
+#
+# ===========================================================================    
+    
+def _set_lut_row(
+    lut,
+    row,
+    pat,
+    dur,
+    rep
+):
+    off = 6*row
+    lut[ off     ] = pat
+    lut[ off + 1 ] = dur[ 0 ]
+    lut[ off + 2 ] = dur[ 1 ]
+    lut[ off + 3 ] = dur[ 2 ]
+    lut[ off + 4 ] = dur[ 3 ]
+    lut[ off + 5 ] = rep
+        
+
+
+            
+# ===========================================================================
+
+class uc8151(
+    canvas
+):
+    
+    """
+    driver for the uc8151 /IL0373 e-paper display
+    
+    This is a driver for the uc8151 /IL0373 e-paper display which is used
+    in the Badger 2040. It is an adaption of the driver written by 
+    Salvatore Sanfilippo.
+    """
+
+    # =======================================================================
+    #
+    #
+    # =======================================================================
+    
+    class _commands:
+        PSR             = const( 0x00 )
+        PWR             = const( 0x01 )
+        POF             = const( 0x02 )
+        PFS             = const( 0x03 )
+        PON             = const( 0x04 )
+        PMES            = const( 0x05 )
+        BTST            = const( 0x06 )
+        DSLP            = const( 0x07 )
+        DTM1            = const( 0x10 )
+        DSP             = const( 0x11 )
+        DRF             = const( 0x12 )
+        DTM2            = const( 0x13 )
+        LUT_VCOM        = const( 0x20 )
+        LUT_WW          = const( 0x21 )
+        LUT_BW          = const( 0x22 )
+        LUT_WB          = const( 0x23 )
+        LUT_BB          = const( 0x24 )
+        PLL             = const( 0x30 )
+        TSC             = const( 0x40 )
+        TSE             = const( 0x41 )
+        TSR             = const( 0x43 )
+        TSW             = const( 0x42 )
+        CDI             = const( 0x50 )
+        LPD             = const( 0x51 )
+        TCON            = const( 0x60 )
+        TRES            = const( 0x61 )
+        REV             = const( 0x70 )
+        FLG             = const( 0x71 )
+        AMV             = const( 0x80 )
+        VV              = const( 0x81 )
+        VDCS            = const( 0x82 )
+        PTL             = const( 0x90 )
+        PTIN            = const( 0x91 )
+        PTOU            = const( 0x92 )
+        PGM             = const( 0xa0 )
+        APG             = const( 0xa1 )
+        ROTP            = const( 0xa2 )
+        CCSET           = const( 0xe0 )
+        PWS             = const( 0xe3 )
+        TSSET           = const( 0xe5 )
+        
+    class _registers:                
+        RES_96x230      = const( 0b00000000 )
+        RES_96x252      = const( 0b01000000 )
+        RES_128x296     = const( 0b10000000 )
+        RES_160x296     = const( 0b11000000 )
+        LUT_OTP         = const( 0b00000000 )
+        LUT_REG         = const( 0b00100000 )
+        FORMAT_BWR      = const( 0b00000000 )
+        FORMAT_BW       = const( 0b00010000 )
+        SCAN_DOWN       = const( 0b00000000 )
+        SCAN_UP         = const( 0b00001000 )
+        SHIFT_LEFT      = const( 0b00000000 )
+        SHIFT_RIGHT     = const( 0b00000100 )
+        BOOSTER_OFF     = const( 0b00000000 )
+        BOOSTER_ON      = const( 0b00000010 )
+        RESET_SOFT      = const( 0b00000000 )
+        RESET_NONE      = const( 0b00000001 )        
+
+    class _pll:
+        f_29            = const( 0b00111111 )
+        f_33            = const( 0b00111110 )
+        f_40            = const( 0b00111101 )
+        f_50            = const( 0b00111100 ) 
+        f_67            = const( 0b00111011 )
+        f_100           = const( 0b00111010 )
+        f_200           = const( 0b00111001 )
+        
+    class _power:
+        VDS_EXTERNAL    = const( 0b00000000 ) 
+        VDS_INTERNAL    = const( 0b00000010 )
+        VDG_EXTERNAL    = const( 0b00000000 )
+        VDG_INTERNAL    = const( 0b00000001 )
+        VCOM_VD         = const( 0b00000000 )
+        VCOM_VG         = const( 0b00000100 )
+        VGHL_16V        = const( 0b00000000 )
+        VGHL_15V        = const( 0b00000001 )
+        VGHL_14V        = const( 0b00000010 )
+        VGHL_13V        = const( 0b00000011 )  
+
+    class _booster:
+        START_10MS      = const( 0b00000000 )
+        START_20MS      = const( 0b01000000 )
+        START_30MS      = const( 0b10000000 )
+        START_40MS      = const( 0b11000000 )
+        STRENGTH_1      = const( 0b00000000 )
+        STRENGTH_2      = const( 0b00001000 )
+        STRENGTH_3      = const( 0b00010000 )
+        STRENGTH_4      = const( 0b00011000 )
+        STRENGTH_5      = const( 0b00100000 )
+        STRENGTH_6      = const( 0b00101000 )
+        STRENGTH_7      = const( 0b00110000 )
+        STRENGTH_8      = const( 0b00111000 )
+        OFF_0_27US      = const( 0b00000000 )
+        OFF_0_34US      = const( 0b00000001 )
+        OFF_0_40US      = const( 0b00000010 )
+        OFF_0_54US      = const( 0b00000011 )
+        OFF_0_80US      = const( 0b00000100 )
+        OFF_1_54US      = const( 0b00000101 )
+        OFF_3_34US      = const( 0b00000110 )
+        OFF_6_58US      = const( 0b00000111 )
+
+    class _frames_per_second:
+        FRAMES_1        = const( 0b00000000 )
+        FRAMES_2        = const( 0b00010000 )
+        FRAMES_3        = const( 0b00100000 )
+        FRAMES_4        = const( 0b00110000 )
+
+    class _tse:
+        TEMP_INTERNAL   = const( 0b00000000 )
+        TEMP_EXTERNAL   = const( 0b10000000 )
+        OFFSET_0        = const( 0b00000000 )
+        OFFSET_1        = const( 0b00000001 )
+        OFFSET_2        = const( 0b00000010 )
+        OFFSET_3        = const( 0b00000011 )
+        OFFSET_4        = const( 0b00000100 )
+        OFFSET_5        = const( 0b00000101 )
+        OFFSET_6        = const( 0b00000110 )
+        OFFSET_7        = const( 0b00000111 )
+        OFFSET_MIN_8    = const( 0b00001000 )
+        OFFSET_MIN_7    = const( 0b00001001 )
+        OFFSET_MIN_6    = const( 0b00001010 )
+        OFFSET_MIN_5    = const( 0b00001011 )
+        OFFSET_MIN_4    = const( 0b00001100 )
+        OFFSET_MIN_3    = const( 0b00001101 )
+        OFFSET_MIN_2    = const( 0b00001110 )
+        OFFSET_MIN_1    = const( 0b00001111 )        
+                
+    # =======================================================================
+
+    def __init__( 
+        self,
+        spi,
+        *,
+        cs,
+        dc,
+        rst,
+        busy,
+        width=128,
+        height=296,
+        speed=0,
+        mirror_x=False,
+        mirror_y=False,
+        inverted=False,
+        no_flickering=False,
+        debug=False,
+        full_update_period=50,
+        dangerous_reaffirm_black=False
+    ) -> None:
+        self.spi = spi
+        self.cs = pin_out( cs )
+        self.dc = pin_out( dc )
+        self.rst = pin_out( rst )
+        self.busy = pin_in( busy )
+        self.width = width
+        self.height = height
+        self.speed = speed
+        self.no_flickering = no_flickering
+        self.dangerous_reaffirm_black = dangerous_reaffirm_black
+        self.inverted = inverted
+        self.mirror_x = mirror_x
+        self.mirror_y = mirror_y
+        self.debug = debug
+        self.initialize_display( )
+        
+        self.raw_fb = bytearray( width*height//8 )
+        self.fb = framebuf.FrameBuffer(
+            self.raw_fb,
+            width,
+            height,
+            framebuf.MONO_HLSB
+        )
+        
+        canvas.__init__( 
+            self, 
+            size = xy( width, height ),
+            is_color = False,
+            background = False
+        )
+
+        # Updates done with the current speed settings.
+        self.update_count = 0
+
+        # From time to time, if partial updates or no-flickering updates
+        # are used, we perform a full update regardless, to remove ghosting,
+        # make the background color more even and so forth.
+        self.full_update_period = full_update_period
+
+    # =======================================================================
+
+    def is_busy(
+        self
+    ) -> bool:
+        """
+        dispay is busy
+        
+        Return true if the display is busy performing an update, or also
+        if for any other reason it is not able to accept commands right now.
+        """
+        
+        # busy in is low on busy condition
+        return self.busy.read() == False 
+
+    # =======================================================================
+
+    def wait_ready(
+        self
+    ) -> None:
+        """
+        wait for the disply to be able to receive a command
+        """
+        
+        while self.is_busy() == True:
+            pass
+
+    # =======================================================================      
+
+    def reset( 
+        self 
+    ) -> None:
+        """
+        Perform hardware reset.
+        """
+        
+        self.rst.write( 0 )
+        time.sleep_ms( 10 )
+        self.rst.write( 1 )
+        time.sleep_ms( 10 )
+        self.wait_ready()
+
+    # =======================================================================
+    
+    def _chip_write(
+        self,
+        cmd: bytes = None,
+        data: bytes = None
+    ) -> None:
+        """
+        write a command an/ot data
+        
+        Send just a command, just data, or a command + data, depending
+        on cmd or data being both bytes() / bytearrays() or None.
+        
+        Commands are executed putting the DC line in command mode
+        and sending the command as first byte, followed if needed by
+        the data arguments (but with DC in data mode).
+        """
+        
+        self.wait_ready()
+        self.cs.write(  0 ) # select
+        self.dc.write( 0 )  # Command mode
+        self.spi.write( _make_bytes( [ cmd ] ) )
+        if data:
+            self.dc.write( 1 ) # Data mode
+            self.spi.write( _make_bytes( data ) )
+        self.cs.write( 1 ) # de-select
+
+    # =======================================================================
+
+    def set_panel_configuration(
+        self
+    ) -> None:
+        """
+        panel configuration: set resolution, format etc.
+        
+        This function sets the PSR register, a key register to
+        set up the panel configuration. We call this function each
+        time a new speed / LUTs are configured, because when we
+        revert to the default LUTs (speed 0) the PSR register
+        must be set to look into the internal tables.
+        """
+
+        psr_settings = FORMAT_BW | BOOSTER_ON | RESET_NONE
+
+        if self.width == 96 and self.height == 230:
+            psr_settings |= RES_96x230
+            
+        elif self.width == 96 and self.height == 252:
+            psr_settings |= RES_96x252
+            
+        elif self.width == 128 and self.height == 296:
+            psr_settings |= RES_128x296
+            
+        elif self.width == 160 and self.height == 296:
+            psr_settings |= RES_160x296
+            
+        else:
+            raise ValueError( "Unsupported display resolution specified" )
+
+        # If we select the default update speed, we will use the
+        # lookup tables defined by the device. Otherwise the values for
+        # the lookup tables must be read from the registers we set.
+        if self.speed == 0:
+            psr_settings |= LUT_OTP
+        else:
+            psr_settings |= LUT_REG
+
+        # Configure mirroring.
+        psr_settings |= SHIFT_LEFT if self.mirror_x else SHIFT_RIGHT
+        psr_settings |= SCAN_DOWN if self.mirror_y else SCAN_UP
+
+        self._chip_write( uc8151._commands.PSR, psr_settings )
+
+    # =======================================================================
+
+    def initialize_display(
+        self
+    ) -> None:
+    
+        self.reset()
+
+        # Soft reset
+        self._chip_write( uc8151._commands.PSR, RESET_SOFT )
+
+        # Here we set the voltage levels that are used for the low-high
+        # transitions states, driven by the waveforms provided in the
+        # lookup tables for refresh.
+        #
+        # The VCOM_DC is left to the default of -0.10v, since
+        # CMD_VDCS is not given.
+        #
+        # VDH/VDL are set to what is the chip default: 10v.
+        # There are drivers around using 11v, but I guess given that
+        # everything seems fine with 10v, there is no reason to increase
+        # voltage and current at the risk of damage.
+        self._chip_write(
+            uc8151._commands.PWR,
+            [
+                VDS_INTERNAL|VDG_INTERNAL,
+                VCOM_VD|VGHL_16V, # VCOM_VD sets VCOM voltage to VD[HL]+VCOM_DC
+                0b100110, # +10v VDH
+                0b100110, # -10v VDL
+                0b000011  # VDHR default (For red pixels, not used here)
+            ]
+        )
+
+        # Set the lookup tables depending on the speed.
+        self.set_waveform_lut()
+
+        # Booster soft start configuration.
+        boost_value = START_10MS | STRENGTH_3 | OFF_6_58US
+        self._chip_write( uc8151._commands.BTST, [ boost_value ] * 3 )
+
+        # Power on
+        self._chip_write( uc8151._commands.PON )
+
+        # Setup the pain manel configuration
+        self.set_panel_configuration()
+
+        # Setup the duration (in frames) for the discharge executed for
+        # power-off. This is useful to left the pixels in a "stable"
+        # configuration. One frame means 10 milliseconds at 100 HZ.
+        #
+        # At 100 HZ one frame time may not be enough. It was experimentally
+        # observed that the display is more stable after being completely
+        # disconnected if we use a 40 millisecond delay. There is a cost
+        # for this of course: more latency in functions executing the POF
+        # command.
+        self._chip_write( uc8151._commands.PFS, FRAMES_4 )
+
+        # Use the internal temperature sensor. Unfortunately there is
+        # no input line connected, so we can't read the temperature.
+        self._chip_write( uc8151._commands.TSE, TEMP_INTERNAL | OFFSET_0 )
+
+        # Set non overlapping period for Gate and Source lines.
+        # TCON set to 0x22 means 12 periods (1 period is 660ns) for
+        # both S->G and G->S transition.
+        self._chip_write( uc8151._commands.TCON, 0x22 )
+
+        # VCOM data and interval settings. We can use this register in order
+        # to invert the display so that black is white and white is black,
+        # without resorting to software changes.
+        #
+        # The bits 7:6 are the "border data selection":
+        # For black/white mode: 00,11 = floating. 01: LUTBW, 10: LUTWB.
+        # For black/white/red: 00 floating, 01 LUTR, 10 LUTW, 11 LUTB.
+        # We keep it at 11 since it is floating in all the cases so
+        # that the border will not flicker.
+        self._chip_write(
+            uc8151._commands.CDI,
+            0b11_01_1100 if self.inverted else 0b11_00_1100
+        )
+
+        # PLL clock frequency. Setting it to 100 HZ means that each
+        # "frame" in the counts in the refresh waveforms lookup tables will
+        # last 10 milliseconds. Certain drivers set it to 200 HZ for the fast
+        # modes, but in my tests it does not work well at all, so we take
+        # it to a fixed 100 HZ.
+        print( "set PLL" )
+        self._chip_write( uc8151._commands.PLL, uc8151._pll.f_100 )
+
+        # Power off the display. We will pover on it again on the
+        # next update of the image.
+        self._chip_write( uc8151._commands.POF )
+
+    # =======================================================================
+    #
+    # This function (after all this big comment) sets the lookup tables
+    # used during the display refresh. Before reading it, it's a good
+    # idea to understand how LUTs are encoded:
+    #
+    # We have a table for each transition possibile:
+    # white -> white (WW)
+    # white -> black (WB)
+    # black -> black (BB)
+    # black -> white (BW)
+    # and a final table that controls the VCOM common voltage.
+    #
+    # The update process happens in steps, each 7 rows of each
+    # table tells the display how to set each pixel based on the
+    # transition (WW, WB, BB, BW) and VCOM in each step. Usually just
+    # three or two steps are used.
+    #
+    # When we talk about a "WW" transition or "WB" transition, what we
+    # mean is the difference between the pixel value set in the *last*
+    # display update, and the pixel value of the *current* display update.
+    # So if in the previous update a pixel was white, and later the pixel
+    # turns black, then it's a WB transition and will be handled by the
+    # WB LUT.
+    #
+    # VCOM table is different and explained later, but for the first four
+    # tables, this is how to interpret them. For instance the
+    # lookup for WW in the second row (step 1) could be set to:
+    #
+    # 0x60, 0x02, 0x02, 0x00, 0x00, 0x01 -> last byte = repeat count
+    #  \     |      |    |     |
+    #   \    +------+----+-----+-> number of frames
+    #    \_ four transitions
+    #
+    # The first byte must be read as four two bits integers:
+    #
+    # 0x60 is: 01|10|00|00
+    #
+    # Where each 2 bit number menas:
+    # 00 - Put to ground
+    # 01 - Put to VDH voltage (10v in our config): pixel becomes black
+    # 10 - Put to VDL voltage (-10v in our config): pixel becomes white
+    # 11 - Floating / Not used.
+    #
+    # Then the next four bytes in the row mean how many
+    # "frames" we hold a given state (the frame duration depends on the
+    # frequency set in the PLL, here we configure it to 100 HZ so 10ms).
+    # 
+    # So in the above case: hold pixel at VDH for 2 frames, then
+    # hold at VDL for 2 frame. The last two entries say 0 frames,
+    # so they are not used. The final byte in the row, 0x01, means
+    # that this sequence must be repeated just once. If it was 2
+    # the whole sequence would repeat 2 times and so forth.
+    #
+    # The VCOM table is similar, but the bits meaning is different:
+    # 00 - Put VCOM to VCOM_DC voltage
+    # 01 - Put VCOM to VDH+VCOM_DC voltage (see PWR register config)
+    # 10 - Put VCOM to VDL+VCOM_DC voltage
+    # 11 - Floating / Not used.
+    #
+    # The VCOM table has two additional bytes at the end.
+    # The meaning of these bytes apparently is the following (but I'm not
+    # really sure what they mean):
+    # 
+    # First additional byte: ST_XON, if (1<<step) bit is set, for
+    # that step all gates are on. Second byte: ST_CHV. Like ST_XON
+    # but if (1<<step) bit is set, VCOM voltage is set to high for this step.
+    #
+    # However they are set to 0 in all the LUTs I saw, so they are generally
+    # not used and we don't use it either.
+    #
+    # =======================================================================   
+
+    def set_waveform_lut(
+        self,
+        speed = None,
+        no_flickering = None
+    ) -> None:
+    
+        if speed == None:
+            speed = self.speed
+            
+        if no_flickering == None:
+            no_flickering = self.no_flickering
+
+        if speed < 1:
+            # For the default speed, we don't set any LUT, but resort
+            # to the one inside the device. __init__() will take care
+            # to tell the chip to use internal LUTs by setting the right
+            # PSR field to LUT_OTP.
+            return
+
+        if speed > 6:
+            raise ValueError( "Speed must be set between 0 and 6" )
+
+        # In this driver we try to do things a bit differently and compute
+        # LUTs on the fly depending on the 'speed' requested by the user.
+        # Each successive speed value cuts the display update time in half.
+        # Floating point speeds are possible, so 2.5 will be between
+        # 2 and 3 from the POV of speed and quality.
+        #
+        # Moreover, we check if no_flickering was set to True. In this case
+        # we change the LUTs in two ways, with the goal to prevent the
+        # unpleasant color inversion flickering effect:
+        #
+        # 1. The 2 x black-to-white ping-pong is NOT performed.
+        #    This usually is performed to set the display pixels in a
+        #    know state to prevent ghosting, leaving residues and so forth.
+        # 2. Waveforms for white-to-white and black-to-black will avoid
+        #    to invert the pixels at all. We will just set the
+        #    voltage to ground (see more about this below).
+
+        # Create the LUTs to fill with the computed values.
+        VCOM = bytearray( 44 )
+        BW = bytearray( 42 )
+        WB = bytearray( 42 )
+        WW = bytearray( 42 )
+        BB = bytearray( 42 )
+
+        # Those periods are powers of two so that each successive 'speed'
+        # value cuts them in half cleanly.
+        period = 64             # Num. of frames for single direction change.
+        hperiod = period // 2   # Num. of frames for back-and-forth change.
+        
+        # Actual period is scaled by the speed factor
+        period = int( max( period / ( 2**( speed - 1 ) ), 1 ) )
+        hperiod = int( max( hperiod / ( 2**( speed - 1) ), 1 ) )
+
+        # Set the waveform in the LUTs.
+        #
+        # Note: for all the steps, VCOM is just taken at VCOM_DC,
+        # so the VCOM pattern is always 0.
+        #
+        # Also note that the generated WW/BB LUTs are charge-neutral. This
+        # means that we apply the same level of positive and negative
+        # voltages for each pixel. This is VERY important to make sure
+        # the display microparticles don't get permanently damaged.
+
+        if speed <= 3 and no_flickering == False:
+            # For low speed everything is charge-neutral, even WB/BW.
+
+            # Phase 1: long go-inverted-color.
+            _set_lut_row( VCOM, 0, pat=0, dur=[period,0,0,0], rep=2)
+            _set_lut_row( BW, 0, pat=0b01_000000, dur=[period,0,0,0], rep=2)
+            _set_lut_row( WB, 0, pat=0b10_000000, dur=[period,0,0,0], rep=2)
+
+            # Phase 2: short ping/pong.
+            _set_lut_row( VCOM, 1, pat=0, dur=[hperiod,hperiod,0,0], rep=2)
+            _set_lut_row( BW, 1, pat=0b10_01_0000, dur=[hperiod,hperiod,0,0], rep=1)
+            _set_lut_row( WB, 1, pat=0b01_10_0000, dur=[hperiod,hperiod,0,0], rep=1)
+
+            # Phase 3: long go-target-color.
+            _set_lut_row( VCOM, 2, pat=0, dur=[period,0,0,0], rep=2)
+            _set_lut_row( BW, 2, pat=0b10_000000, dur=[period,0,0,0], rep=2)
+            _set_lut_row( WB, 2, pat=0b01_000000, dur=[period,0,0,0], rep=2)
+
+            # For this speed, we use the same LUTs for WW/BB as well. We
+            # will clear it for no flickering modes.
+            WW[ : ] = BW[ : ]
+            BB[ : ] = WB[ : ]
+            
+        else:   # Speed > 3
+            # For greater than 3 we use non charge-neutral LUTs for WB/BW
+            # since the inpulse is short and it gets reversed when the
+            # pixel changes color, so that's not a problem for the display,
+            # however we still need to use charge-neutral LUTs for WW/BB.
+
+            # Phase 1 for BW/WB. Just go to target color.
+            # Phase 1 for WW/BB. Invert, go back.
+            p = period
+            _set_lut_row(VCOM,0,pat=0,dur=[p,p,p,p],rep=1)
+            _set_lut_row(BW,0,pat=0b10_00_00_00,dur=[p*4,0,0,0],rep=1)
+            _set_lut_row(WB,0,pat=0b01_00_00_00,dur=[p*4,0,0,0],rep=1)
+            _set_lut_row(WW,0,pat=0b01_10_00_00,dur=[p*2,p*2,0,0],rep=1)
+            _set_lut_row(BB,0,pat=0b10_01_00_00,dur=[p*2,p*2,0,0],rep=1)
+
+        # If no flickering mode is enabled, we use an empty
+        # waveform BB and WW. The screen will be fully refreshed every
+        # self.full_update_period updates.
+        #
+        # !!! WARNING !!!
+        #
+        # For BB/WW, to just re-affirm the pixel color applying only the
+        # voltage needed for the target color will result in microparticles
+        # to be semi-permanently polarized towards one way, with damages
+        # that often go away in one day or alike, but it may ruin the
+        # display forever insisting enough. So we just put the pixels to
+        # ground, and from time to time do a full refresh.
+        if no_flickering == True:
+            _clear_lut( WW )
+            _clear_lut( BB )
+            # If the user sets the dangerous_reaffirm_black parameter during
+            # the initialization, we very slightly (just two frames) reaffirm
+            # the black pixels in the BB table, so that they will go less
+            # towards greyish color. Potentially this could polarize the
+            # display.
+            if self.dangerous_reaffirm_black:
+                self.set_lut_row(BB,0,pat=0b10_01_10_01,dur=[0,2,0,0],rep=1)
+
+        # Set the LUTs into the display registers.
+        self._chip_write( uc8151._commands.LUT_VCOM, VCOM )
+        self._chip_write( uc8151._commands.LUT_BW, BW )
+        self._chip_write( uc8151._commands.LUT_WB, WB )
+        self._chip_write( uc8151._commands.LUT_WW, WW )
+        self._chip_write( uc8151._commands.LUT_BB, BB )
+
+    # =======================================================================
+
+    # Change the speed once the driver is already initialized.
+    # Sometimes in an application there are updates we want to do
+    # at high quality, other updates we want to do faster.
+    def set_speed(
+        self,
+        new_speed,
+        *,
+        no_flickering = None,
+        full_update_period = None
+    ) -> None:
+    
+        if no_flickering != None:
+            self.no_flickering = no_flickering
+            
+        if full_update_period != None:
+            self.full_update_period = full_update_period
+            
+        self.speed = new_speed
+        self.set_panel_configuration()
+        self.set_waveform_lut()
+        self.update_count = 0
+
+    # =======================================================================
+
+    def wait_and_switch_off( 
+        self 
+    ) -> None:
+        """
+        power the display down
+        
+        Wait for the display to return back able to accept commands
+        (if it is updating the display it remains busy), and switch
+        it off once it is possible.
+        """
+        
+        self.wait_ready()
+        self._chip_write( uc8151._commands.POF )
+
+    # =======================================================================
+
+    # Update the screen with the current image in the framebuffer.
+    # If 'fb' is passed, we use a different framebuffer instead.
+    # If blocking is True, the function blocks until the update
+    # is complete and powers the display off. Otherwise the display
+    # will remain powered on, and can (and should) be turned off later
+    # with wait_and_switch_off().
+    #
+    # The function returns False and does nothing in case the
+    # blocking argument is False but there is an update already
+    # in progress. Otherwise True is returned and the display is updated.
+    def update(
+        self,
+        blocking = True,
+        fb = None
+    ) -> bool:
+        if fb == None: 
+            fb = self.raw_fb
+        if blocking == False and self.is_busy(): 
+            return False
+
+        # At the first refresh with a no-flickering mode, and also
+        # every N refreshes, do a full refresh. Unless it's set to 0.
+        do_full_update = self.full_update_period != 0 and \
+                         self.update_count % self.full_update_period == 0 and \
+                         self.no_flickering
+
+        if do_full_update: self.set_waveform_lut(min(2,self.speed),False)
+
+        self.send_image(fb)
+        self._chip_write( uc8151._commands.DRF ) # Start refresh cycle.
+
+        # Load back the no-flickering LUTs if we forced a flickered refresh.
+        if do_full_update: self.set_waveform_lut()
+
+        if blocking: self.wait_and_switch_off()
+        self.update_count += 1
+        return True
+
+    # =======================================================================
+
+    # Transfer bitmap to device. The chip has two framebuffers, one for
+    # the old image and one for the new image. This way it can do the
+    # difference when performing the update and apply the correct waveform
+    # depending on WW, BB, WB, BW transition. When we refresh, the new
+    # framebuffer is automatically copied to the old one, but we can control
+    # both framebuffer when we wish to.
+    def send_image(
+        self,
+        fb,
+        old = False
+    ) -> None:
+    
+        # Power on, Partial mode off
+        self._chip_write( uc8151._commands.PON ) 
+        self._chip_write( uc8151._commands.PTOU )
+        
+        if old:
+            # Transfer to previous image buffer.
+            self._chip_write( uc8151._commands.DTM1, fb )
+            
+        else:
+            # Transfer to current image buffer.
+            self._chip_write( uc8151._commands.DTM2, fb ) 
+            
+        # End of data    
+        self._chip_write( uc8151._commands.DSP )
+
+    # =======================================================================    
+
+    def _write_pixel_implementation( 
+        self, 
+        location: xy, 
+        ink: bool
+    ) -> None:
+        """
+        write to a single pixel
+        """
+               
+        self.fb.pixel( 
+            location.x, 
+            location.y, 
+            ink
+        )
+        
+   # =======================================================================    
+
+    def _clear_implementation( 
+        self, 
+        ink: bool
+    ) -> None:
+        """
+        clear the framebufer
+        """
+
+        self.fb.fill( 0xFF if ink else 0x00 )      
+        
+    # =======================================================================
+    
+    def _flush_implementation(
+        self,
+        forced: bool
+    ) -> None:
+        """
+        flush the framebuffer to the display
+        """          
+        
+        self.update()     
+    
+    # =======================================================================
+
+
+# ===========================================================================
